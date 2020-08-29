@@ -1,5 +1,6 @@
 from flask import Flask, send_file
 from achievement import Achievement
+from os import environ as env
 
 app = Flask(__name__)
 
@@ -8,6 +9,7 @@ app = Flask(__name__)
 def new(name):
     ach = Achievement(name)
     return send_file(ach.get(), mimetype='image/PNG')
+
 
 @app.route('/vk')
 def vk():
