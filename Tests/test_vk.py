@@ -49,6 +49,22 @@ class VkTests(unittest.TestCase):
         req = requests.post('http://127.0.0.1:5000/vk', json=json)
         self.assertEqual('ok', req.text)
 
+    def test_long_name(self):
+        json = {
+            'type': "message_new",
+            'secret': env['VK_SECRET'],
+            'group_id': 198302424,
+            'object': {
+                'message': {
+                    'from_id': 241091493,
+                    'text': 40 * 'a',
+                    'attachments': []
+                }
+            }
+        }
+        req = requests.post('http://127.0.0.1:5000/vk', json=json)
+        self.assertEqual('ok', req.text)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -40,7 +40,7 @@ class VK:
         # Achievement name
         name = msg['text']
         if len(name) > Achievement.get_max('name'):
-            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang['ru']['long_name'] + Achievement.get_max('name'))
+            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang['ru']['long_name'] + str(Achievement.get_max('name')))
             return
         elif name == "":
             name = lang['ru']['unnamed']
