@@ -43,6 +43,8 @@ class VK:
             self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang['ru']['long_name'])
             return
 
+        if name == "":
+            name = lang['ru']['unnamed']
         # Checking attachments
         image = None
         for attachment in msg['attachments']:
