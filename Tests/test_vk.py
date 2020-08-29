@@ -11,7 +11,7 @@ class VkTests(unittest.TestCase):
             'group_id': 198302424
         }
         req = requests.post('http://127.0.0.1:5000/vk', json=json)
-        self.assertEqual("23b6ec88", req.text)
+        self.assertEqual(env['VK_CONFIRM'], req.text)
 
     def test_wrong_secret(self):
         json = {

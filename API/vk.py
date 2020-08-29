@@ -21,7 +21,7 @@ class VK:
         req = self.request
 
         if r_type == 'confirmation':
-            return self.api.groups.getCallbackConfirmationCode(group_id=req['group_id'])['code']
+            return env['VK_CONFIRM']
         elif req['secret'] != env['VK_SECRET']:
             return 'not vk'
 
