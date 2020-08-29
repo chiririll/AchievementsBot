@@ -19,3 +19,7 @@ def vk():
 @app.route('/telegram')
 def telegram():
     return 'ok'
+
+
+if __name__ == "__main__":
+    app.run()
