@@ -32,7 +32,7 @@ class Achievement:
             # TODO: send message "Bad name"
 
         # Image
-        if 'image' in self.params.keys():
+        if 'image' in self.params.keys() and self.params['image']:
             self.image = self.params['image']
             del self.params['image']
         else:
@@ -100,7 +100,10 @@ class Achievement:
                 urls.append(images[i]['src'])
             if len(urls) >= 3:
                 return choice(urls)
-        return choice(urls)
+        if len(urls) > 0:
+            return choice(urls)
+        else:
+            return '%Images/unknown.jpg'
 
     def _get_color(self, obj_paint):
         if obj_paint in self.params:
@@ -136,8 +139,13 @@ class Achievement:
         achievement = Image.new("RGB", (900, 300), self._get_color('bg_color'))
 
         # Pasting icon
-        resp = requests.get('https:' + self.image)     # Downloading image
-        achievement.paste(Image.open(BytesIO(resp.content)).resize((300, 300)))
+        icon = None
+        if self.image[0] == '%':
+            icon = Image.open(self.image[1:])
+        else:
+            resp = requests.get('https:' + self.image)     # Downloading image
+            icon = Image.open(BytesIO(resp.content)).resize((300, 300))
+        achievement.paste(icon)
 
         # Creating drawer
         d = ImageDraw.Draw(achievement)

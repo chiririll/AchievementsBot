@@ -1,7 +1,8 @@
 lang = {
     'en': {
-        'unlocked': 'Achievement unlocked',
-        'colors': {}
+        'unlocked': "Achievement unlocked",
+        'colors': {},
+        'long_name': "Achievement's name is too long! Maximum length is:"
     },
     'ru': {
         'unlocked': 'Новое достижение!',
@@ -22,6 +23,7 @@ lang = {
             'синий': 'blue',
             'бирюзовый': 'teal',
             'голубой': 'cyan'
-        }
+        },
+        'long_name': 'Название достижения слишком длинное! Максимальная длина:'
     }
 }
