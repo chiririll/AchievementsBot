@@ -97,7 +97,7 @@ class Achievement:
 
         for i in range(0, len(images)):
             if self._get_size(meta[i].text) >= 250:
-                urls.append(images[i]['src'])
+                urls.append('https:' + images[i]['src'])
             if len(urls) >= 3:
                 return choice(urls)
         if len(urls) > 0:
@@ -143,7 +143,7 @@ class Achievement:
         if self.image[0] == '%':
             icon = Image.open(self.image[1:])
         else:
-            resp = requests.get('https:' + self.image)     # Downloading image
+            resp = requests.get(self.image)     # Downloading image
             icon = Image.open(BytesIO(resp.content)).resize((300, 300))
         achievement.paste(icon)
 

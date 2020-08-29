@@ -1,5 +1,6 @@
 import unittest
 import requests
+import json as j
 from os import environ as env
 
 
@@ -35,6 +36,16 @@ class VkTests(unittest.TestCase):
                 }
             }
         }
+        req = requests.post('http://127.0.0.1:5000/vk', json=json)
+        self.assertEqual('ok', req.text)
+
+    def test_custom_image(self):
+        json = j.load(open('data/attachments.json', 'r'))
+        req = requests.post('http://127.0.0.1:5000/vk', json=json)
+        self.assertEqual('ok', req.text)
+
+    def test_no_name(self):
+        json = j.load(open('data/attachments_no_text.json', 'r'))
         req = requests.post('http://127.0.0.1:5000/vk', json=json)
         self.assertEqual('ok', req.text)
 

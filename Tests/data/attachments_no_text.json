@@ -1,0 +1,92 @@
+{
+    "type": "message_new",
+    "object": {
+        "message": {
+            "date": 1598740712,
+            "from_id": 241091493,
+            "id": 10,
+            "out": 0,
+            "peer_id": 241091493,
+            "text": "",
+            "conversation_message_id": 10,
+            "fwd_messages": [],
+            "important": false,
+            "random_id": 0,
+            "attachments": [
+                {
+                    "type": "photo",
+                    "photo": {
+                        "album_id": -15,
+                        "date": 1598215409,
+                        "id": 457245493,
+                        "owner_id": 241091493,
+                        "has_tags": false,
+                        "access_key": "bedc74870ea4d619e9",
+                        "sizes": [
+                            {
+                                "height": 93,
+                                "url": "https://sun9-61.userapi.com/M7pm4MoQqAeaeSpz4x2dfCKC8-mNscgenyIT5w/EVyx7W19C40.jpg",
+                                "type": "m",
+                                "width": 130
+                            },
+                            {
+                                "height": 93,
+                                "url": "https://sun9-61.userapi.com/M7pm4MoQqAeaeSpz4x2dfCKC8-mNscgenyIT5w/EVyx7W19C40.jpg",
+                                "type": "o",
+                                "width": 130
+                            },
+                            {
+                                "height": 143,
+                                "url": "https://sun9-75.userapi.com/35LydRwix5-1NW4yyIDVNbFSSkp5gAtSR6dEwg/qDjIXbbnkrs.jpg",
+                                "type": "p",
+                                "width": 200
+                            },
+                            {
+                                "height": 228,
+                                "url": "https://sun9-12.userapi.com/KIL0SOL9MIC35ThDiiT4lAy9FPNezoFDYdsCQQ/9C5JFPVPXHI.jpg",
+                                "type": "q",
+                                "width": 320
+                            },
+                            {
+                                "height": 364,
+                                "url": "https://sun9-73.userapi.com/K5ef6o8zmi6t6rKFZmz8_x5WhW9ZU9OhfUOdTw/H4QeERptIdY.jpg",
+                                "type": "r",
+                                "width": 510
+                            },
+                            {
+                                "height": 54,
+                                "url": "https://sun9-31.userapi.com/KfmXCc9Mb_NP7-O9lYeK_QUQVOSOWvS_ZtqVRQ/kkl4x-BVjH0.jpg",
+                                "type": "s",
+                                "width": 75
+                            },
+                            {
+                                "height": 431,
+                                "url": "https://sun9-19.userapi.com/-o2hfQCxXwbT417YezLiuc2ijfnRmtgLjhDohg/dQ7PJrETfYc.jpg",
+                                "type": "x",
+                                "width": 604
+                            }
+                        ],
+                        "text": ""
+                    }
+                }
+            ],
+            "is_hidden": false
+        },
+        "client_info": {
+            "button_actions": [
+                "text",
+                "vkpay",
+                "open_app",
+                "location",
+                "open_link"
+            ],
+            "keyboard": true,
+            "inline_keyboard": true,
+            "carousel": false,
+            "lang_id": 0
+        }
+    },
+    "group_id": 198302424,
+    "event_id": "be0c57d0b8f4fcaa365def9dc5e6caffb3ca47ec",
+    "secret": "ppbg23GB5P6AquG37DsE"
+}
