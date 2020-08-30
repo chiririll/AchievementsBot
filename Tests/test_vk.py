@@ -34,8 +34,11 @@ class VkTests(unittest.TestCase):
             'object': {
                 'message': {
                     'from_id': 241091493,
-                    'text': "test",
+                    'text': "test\nbg_color: #3aEb6a, текст: зеленый",
                     'attachments': []
+                },
+                "client_info": {
+                    "lang_id": 0
                 }
             }
         }
@@ -62,6 +65,9 @@ class VkTests(unittest.TestCase):
                     'from_id': 241091493,
                     'text': 40 * 'a',
                     'attachments': []
+                },
+                "client_info": {
+                    "lang_id": 0
                 }
             }
         }

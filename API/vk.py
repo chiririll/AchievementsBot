@@ -4,7 +4,7 @@ import requests
 import vk_api
 from os import environ as env
 from achievement import Achievement
-from lang import lang
+from lang import lang, lang_ids
 
 
 class VK:
@@ -19,6 +19,7 @@ class VK:
         # Request type
         r_type = self.request['type']
         req = self.request
+
 
         if r_type == 'confirmation':
             return env['VK_CONFIRM']
@@ -37,13 +38,35 @@ class VK:
         msg = self.request['object']['message']
         sender = msg['from_id']
 
+        lcode = 'ru'
+        if 0 <= self.request['object']['client_info']['lang_id'] < len(lang_ids):
+            lcode = lang_ids[self.request['object']['client_info']['lang_id']]
+
+        # Working with text
+        lines = msg['text'].split('\n')
+
+        # Params
+        params = {}
+        if len(lines) > 1:
+            vk_params = lines[len(lines)-1].split(',')
+            for param in vk_params:
+                p_name, p_val = param.split(':', 2)
+                p_name = p_name.strip().lower()
+                p_val = p_val.strip()
+
+                if p_name in lang[lcode]['params'].keys():
+                    params[lang[lcode]['params'][p_name]] = p_val
+                else:
+                    params[p_name] = p_val
+
+
         # Achievement name
-        name = msg['text']
+        name = lines[0]
         if len(name) > Achievement.get_max('name'):
-            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang['ru']['long_name'] + ' ' + str(Achievement.get_max('name')))
+            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang[lcode]['long_name'] + ' ' + str(Achievement.get_max('name')))
             return
         elif name == "":
-            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang['ru']['unnamed'])
+            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang[lcode]['unnamed'])
             return
 
         # Checking attachments
@@ -57,7 +80,9 @@ class VK:
                 break
 
         # Creating achievement
-        a = Achievement(name, image=image)
+        params['image'] = image
+        params['lang'] = lcode
+        a = Achievement(name, **params)
 
         # Uploading achievement
         server_url = self.api.photos.getMessagesUploadServer(peer_id=sender)['upload_url']

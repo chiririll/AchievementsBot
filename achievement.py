@@ -22,6 +22,7 @@ class Achievement:
         :key text_color: Text color, should be str
         :key search_request: Text for searching image, should be str
         :key from_service: Domain of service, should be str ('t.me' or 'vk.com')
+        :key search_all: Search images with any sizes
         """
         # Saving params
         self.params = params
@@ -72,9 +73,13 @@ class Achievement:
         return max_len[key]
 
     def _find_image(self):
+        search_all = False
+        if 'search_all' in self.params.keys():
+            search_all = True
+
         if 'search_request' in self.params:
-            return get_google(self.params['search_request'])
-        return get_google(self.name)
+            return get_google(self.params['search_request'], search_all)
+        return get_google(self.name, search_all)
 
     def _get_color(self, obj_paint):
         if obj_paint in self.params:

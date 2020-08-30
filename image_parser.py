@@ -17,8 +17,11 @@ def get_size(meta_text):
 
 
 # Google
-def get_google(text):
+def get_google(text, search_all=False):
     url = "https://www.google.ru/search?tbm=isch&tbs=iar:s&as_q=" + text
+    if search_all:
+        url = "https://www.google.ru/search?tbm=isch&as_q=" + text
+
     req = requests.get(url)
     if req.status_code != 200:
         return None
