@@ -50,7 +50,11 @@ class VK:
         if len(lines) > 1:
             vk_params = lines[len(lines)-1].split(',')
             for param in vk_params:
-                p_name, p_val = param.split(':', 2)
+                try:
+                    p_name, p_val = param.split(':', 2)
+                except ValueError:
+                    continue
+
                 p_name = p_name.strip().lower()
                 p_val = p_val.strip()
 
@@ -58,7 +62,6 @@ class VK:
                     params[lang[lcode]['params'][p_name]] = p_val
                 else:
                     params[p_name] = p_val
-
 
         # Achievement name
         name = lines[0]
