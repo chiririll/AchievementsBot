@@ -57,7 +57,7 @@ class VK:
                 break
 
         # Creating achievement
-        a = Achievement(name, image=image, from_service='t.me')
+        a = Achievement(name, image=image)
 
         # Uploading achievement
         server_url = self.api.photos.getMessagesUploadServer(peer_id=sender)['upload_url']
