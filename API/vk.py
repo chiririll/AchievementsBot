@@ -40,10 +40,11 @@ class VK:
         # Achievement name
         name = msg['text']
         if len(name) > Achievement.get_max('name'):
-            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang['ru']['long_name'] + str(Achievement.get_max('name')))
+            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang['ru']['long_name'] + ' ' + str(Achievement.get_max('name')))
             return
         elif name == "":
-            name = lang['ru']['unnamed']
+            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang['ru']['unnamed'])
+            return
 
         # Checking attachments
         image = None
@@ -56,7 +57,7 @@ class VK:
                 break
 
         # Creating achievement
-        a = Achievement(name, image=image)
+        a = Achievement(name, image=image, from_service='t.me')
 
         # Uploading achievement
         server_url = self.api.photos.getMessagesUploadServer(peer_id=sender)['upload_url']

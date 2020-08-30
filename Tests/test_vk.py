@@ -3,6 +3,9 @@ import requests
 import json as j
 from os import environ as env
 
+# TODO: Add proxy
+# TODO: optimization
+
 
 class VkTests(unittest.TestCase):
 

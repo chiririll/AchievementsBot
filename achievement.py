@@ -3,7 +3,7 @@ import requests
 from lang import lang
 from random import randint, choice
 from PIL import Image, ImageDraw, ImageColor, ImageFont
-from bs4 import BeautifulSoup
+from image_parser import get_google
 
 
 # TODO: Add secret achievements
@@ -20,6 +20,8 @@ class Achievement:
         :key style: Achievement style, should be int
         :key bg_color: Background color, should be str
         :key text_color: Text color, should be str
+        :key search_request: Text for searching image, should be str
+        :key from_service: Domain of service, should be str ('t.me' or 'vk.com')
         """
         # Saving params
         self.params = params
@@ -69,41 +71,10 @@ class Achievement:
         }
         return max_len[key]
 
-    @staticmethod
-    def _get_size(meta_text):
-        number = ""
-        for symb in meta_text:
-            if symb == '×':
-                break
-            else:
-                number += symb
-        try:
-            return int(number)
-        except ValueError:
-            return 0
-
     def _find_image(self):
-        url = "https://yandex.ru/images/search?iorient=square&text=" + self.name
-        req = requests.get(url)
-        if req.status_code != 200:
-            return 'Images/unknown.jpg'
-
-        soup = BeautifulSoup(req.text, features="html.parser")
-
-        images = soup.findAll("img", {"class": "serp-item__thumb justifier__thumb"})
-        meta = soup.findAll("div", {"class": "serp-item__meta"})
-
-        urls = []
-
-        for i in range(0, len(images)):
-            if self._get_size(meta[i].text) >= 250:
-                urls.append('https:' + images[i]['src'])
-            if len(urls) >= 3:
-                return choice(urls)
-        if len(urls) > 0:
-            return choice(urls)
-        else:
-            return '%Images/unknown.jpg'
+        if 'search_request' in self.params:
+            return get_google(self.params['search_request'])
+        return get_google(self.name)
 
     def _get_color(self, obj_paint):
         if obj_paint in self.params:
@@ -140,8 +111,8 @@ class Achievement:
 
         # Pasting icon
         icon = None
-        if self.image[0] == '%':
-            icon = Image.open(self.image[1:])
+        if not self.image:
+            icon = Image.open('Images/unknown.jpg')
         else:
             resp = requests.get(self.image)     # Downloading image
             icon = Image.open(BytesIO(resp.content)).resize((300, 300))
@@ -167,8 +138,11 @@ class Achievement:
         d.text(pos, self.name, font=font, fill=self._get_color('text_color'))
 
         # Copyright
+        text = "vk.com/achievebot"
+        if 'from_service' in self.params and self.params['from_service'] == 't.me':
+            text = "t.me/dostizbot"
         font = ImageFont.truetype("Fonts/FlowExt-Bold.otf", 14)
-        d.text((790, 280), "vk.com/achievebot", font=font, fill=self._get_color('text_color'))
+        d.text((790, 280), text, font=font, fill=self._get_color('text_color'))
 
         # Saving
         del d
