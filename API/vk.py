@@ -64,7 +64,7 @@ class VK:
                     params[p_name] = p_val
 
         # Achievement name
-        name = lines[0]
+        name = lines[0].strip()
         if len(name) > Achievement.get_max('name'):
             self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang[lcode]['long_name'] + ' ' + str(Achievement.get_max('name')))
             return
