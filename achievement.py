@@ -1,7 +1,6 @@
 from io import BytesIO
 import requests
 from lang import lang
-from random import randint, choice
 from PIL import Image, ImageDraw, ImageColor, ImageFont
 from image_parser import get_google
 

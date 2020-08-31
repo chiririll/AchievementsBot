@@ -10,6 +10,10 @@ from lang import lang, lang_ids
 class VK:
 
     def __init__(self, request: dict):
+        """
+        Creates a class for handling vk request
+        :param request: Request from vk
+        """
         vk = vk_api.VkApi(token=env['VK_TOKEN'])
         self.api = vk.get_api()
 

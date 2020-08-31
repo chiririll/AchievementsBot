@@ -1,6 +1,5 @@
 from flask import Flask, send_file, request
 
-from os import environ as env
 from achievement import Achievement
 from API import VK
 
