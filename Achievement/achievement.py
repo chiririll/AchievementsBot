@@ -31,7 +31,6 @@ class Achievement:
         self.name = name
         if len(name) > self.get_max('name'):
             self.name = name[:self.get_max('name')]
-            # TODO: send message "Bad name"
 
         # Image
         if 'image' in self.params.keys() and self.params['image']:
@@ -45,7 +44,6 @@ class Achievement:
         # Description
         if 'desc' in self.params.keys() and len(self.params['desc']) > self.get_max('desc'):
             self.params['desc'] = self.params['desc'][:self.get_max('desc')]
-            # TODO: send message "Bad desc"
 
         # Lang
         if 'lang' in self.params.keys() and self.params['lang'] in lang:
@@ -64,7 +62,7 @@ class Achievement:
 
     @staticmethod
     def get_max(key):
-        """ Returns max length of name or description """
+        """ Returns max length of description's name """
         max_len = {
             'name': 30,
             'desc': 100
@@ -116,7 +114,7 @@ class Achievement:
         # Pasting icon
         icon = None
         if not self.image:
-            icon = Image.open('Images/unknown.jpg')
+            icon = Image.open('../Images/unknown.jpg')
         else:
             resp = requests.get(self.image)     # Downloading image
             icon = Image.open(BytesIO(resp.content)).resize((300, 300))

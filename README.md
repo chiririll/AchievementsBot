@@ -6,7 +6,7 @@
 
 ![Example achievement](Images/test.png)
 
-## Where you can try:
+## Links
 
 ### VK: [Here](https://vk.com/achievebot)
 

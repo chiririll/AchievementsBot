@@ -1,9 +1,8 @@
-from random import randint
-
 import requests
 import vk_api
+from random import randint
 from os import environ as env
-from achievement import Achievement
+from Achievement import Achievement
 from lang import lang, lang_ids
 
 
@@ -14,6 +13,7 @@ class VK:
         Creates a class for handling vk request
         :param request: Request from vk
         """
+
         vk = vk_api.VkApi(token=env['VK_TOKEN'])
         self.api = vk.get_api()
 
@@ -24,17 +24,20 @@ class VK:
         r_type = self.request['type']
         req = self.request
 
-
+        # Returning confirmation code
         if r_type == 'confirmation':
             return env['VK_CONFIRM']
+        # Checking secret
         elif req['secret'] != env['VK_SECRET']:
             return 'not vk'
 
         del req
 
+        # New message event
         if r_type == 'message_new':
             self._message_new()
 
+        # Sending ok to vk
         return 'ok'
 
     # Events #

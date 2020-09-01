@@ -1,6 +1,6 @@
 from flask import Flask, send_file, request
 
-from achievement import Achievement
+from Achievement import Achievement
 from API import VK
 
 app = Flask(__name__)
