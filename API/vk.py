@@ -42,6 +42,7 @@ class VK:
 
     # Events #
     def _message_new(self):
+        # TODO: Read message
         msg = self.request['object']['message']
         sender = msg['from_id']
 

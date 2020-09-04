@@ -65,7 +65,7 @@ class Achievement:
         """ Returns max length of description's name """
         max_len = {
             'name': 30,
-            'desc': 100
+            'desc': 50
         }
         return max_len[key]
 
