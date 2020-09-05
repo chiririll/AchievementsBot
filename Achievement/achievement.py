@@ -1,64 +1,99 @@
-from io import BytesIO
 import requests
+from .utils import get_google
+from .style import AchievementStyle
 from lang import lang
-from PIL import Image, ImageDraw, ImageColor, ImageFont
-from image_parser import get_google
+from io import BytesIO
+from PIL import Image
 
 
 # TODO: Add secret achievements
 class Achievement:
 
-    def __init__(self, name: str, **params):
-        """
-        :param name: Name of achievement, should be str
-        :param params: Info about achievement
+    styles = [
+        AchievementStyle(
+            (900, 300), (300, 300), 'Styles/0/font.otf',
+            message="Новое достижение!", msg_size=45, msg_pos=((310, 10), (890, 100)),
+            name_size=70, name_pos=((310, 10), (890, 250))
+        ),
+        AchievementStyle(
+            (900, 300), (300, 300), 'Styles/1/font.otf',
+            message="Открыто достижение!", msg_size=50, msg_pos=((310, 10), (890, 100)),
+            bg_image=Image.open('Styles/1/bg.png'), fg_image=Image.open('Styles/1/fg.png'),
+            name_size=70, name_pos=((310, 100), (890, 220)),
+            use_copyright=False
+        ),
+        AchievementStyle(
+            (900, 300), (300, 300), 'Styles/2/font.ttf',
+            message="Открыто достижение!", msg_size=50, msg_pos=((310, 10), (890, 100)), msg_color=(144, 66, 178),
+            bg_image=Image.open('Styles/1/bg.png'), fg_image=Image.open('Styles/1/fg.png'),
+            name_size=70, name_pos=((310, 100), (890, 220))
+        )
+    ]
 
-        :key desc: Description of achievement, should be str
-        :key image: URL of achievement's icon, should be str
-        :key lang: Language of achievement icon, should be str
-        :key style: Achievement style, should be int
-        :key bg_color: Background color, should be str
-        :key text_color: Text color, should be str
-        :key search_request: Text for searching image, should be str
-        :key from_service: Domain of service, should be str ('t.me' or 'vk.com')
-        :key search_all: Search images with any sizes
-        """
-        # Saving params
-        self.params = params
-        del params
+    def __init__(self, message: str, img_url: str = None):
+        self.lang = lang['ru']
 
-        # Name
-        self.name = name
-        if len(name) > self.get_max('name'):
-            self.name = name[:self.get_max('name')]
+        # Global values
+        lines = message.split('\n')
 
-        # Image
-        if 'image' in self.params.keys() and self.params['image']:
-            self.image = self.params['image']
-            del self.params['image']
-        else:
-            print("Finding image...", end=' ')
-            self.image = self._find_image()
-            print("Done!")
+        self.name = lines[0]
+        self.icon = self._get_image(img_url)
+        self.img_url = img_url
+        self.description = ""
+        self.params = {}
 
-        # Description
-        if 'desc' in self.params.keys() and len(self.params['desc']) > self.get_max('desc'):
-            self.params['desc'] = self.params['desc'][:self.get_max('desc')]
+        # Params
+        if len(lines) > 1:
+            params = lines[len(lines) - 1].split(',')
+            for param in params:
+                try:
+                    p_name, p_val = param.split(':', 2)
+                except ValueError:
+                    continue
+
+                p_name = p_name.strip().lower().replace('ё', 'е')
+                p_val = p_val.strip().lower().replace('ё', 'е')
+
+                if p_name in self.lang['params'].keys():
+                    self.params[self.lang['params'][p_name]] = p_val
+                else:
+                    self.params[p_name] = p_val
 
         # Lang
-        if 'lang' in self.params.keys() and self.params['lang'] in lang:
+        if 'lang' in self.params.keys() and self.params['lang'] in lang.keys():
             self.lang = lang[self.params['lang']]
-        else:
-            self.lang = lang['ru']
 
-        # Image
-        self.achievement = None
+        self._check_params()
 
-        # Style
-        if 'style' in self.params.keys():
-            self._draw(self.params['style'])
+        # Description
+        if len(lines) > 2:
+            self.description = ' '.join(lines[1:-1])
+
+    def generate(self):
+        # Checking length
+        if len(self.name) > self.get_max('name'):
+            return {'error': True, 'message': "long_name"}
+        if len(self.description) > self.get_max('desc'):
+            return {'error': True, 'message': "long_desc"}
+
+        if type(self.params['style']) is int and 0 < self.params['style'] <= len(self.styles):
+            image = self.styles[self.params['style']-1].generate(self.name, self.icon, self.description)
+
+            payload = {
+                'name': self.name,
+                'icon': self.img_url,
+                'desc': self.description,
+                'params': self.params
+            }
+
+            keyboard = [
+                {'label': 'other_styles', 'color': 'normal', 'payload': payload},
+                {'label': 'other_images', 'color': 'normal', 'payload': payload}
+            ]
+
+            return {'error': False, 'image': image, 'inline': True, 'keyboard': keyboard}
         else:
-            self._draw(0)
+            return {'error': True, 'message': 'unknown_style'}
 
     @staticmethod
     def get_max(key):
@@ -69,88 +104,34 @@ class Achievement:
         }
         return max_len[key]
 
-    def _find_image(self):
-        search_all = False
-        if 'search_all' in self.params.keys():
-            search_all = True
+    def _check_params(self):
+        defaults = {
+            'lang': 'ru',
+            'style': '0',
+            'bg_color': '#000000',
+            'text_color': '#FFFFFF',
+            'search_request': None,
+            'search_all': False
+        }
+        for k, v in defaults:
+            if k not in self.params.keys():
+                self.params[k] = v
 
-        if 'search_request' in self.params:
-            return get_google(self.params['search_request'], search_all)
-        return get_google(self.name, search_all)
+    def _get_image(self, img_url: str = None):
+        # Getting from VK or Telegram
+        url = img_url
 
-    def _get_color(self, obj_paint):
-        if obj_paint in self.params:
-            # Checking color
-            try:
-                return ImageColor.getrgb(self.params[obj_paint])
-            except ValueError:
-                pass
-            # Translating color
-            try:
-                return ImageColor.getrgb(self.lang['colors'][self.params[obj_paint]])
-            except ValueError:
-                pass
-            except KeyError:
-                pass
-        if obj_paint == 'bg_color':
-            return '#000000'
-        else:
-            return '#FFFFFF'
+        # Finding in google
+        if not url:
+            if self.params['search_request']:
+                url = get_google(self.params['search_request'], self.params['search_all'])
+            else:
+                url = get_google(self.name, self.params['search_all'])
 
-    def _draw(self, style: int):
-        styles = [
-            self._style1
-        ]
-        # Generate achievement with style
-        if 0 <= style < len(styles):
-            styles[style]()
-        else:
-            styles[0]()
+        # Unknown
+        if not url:
+            return Image.open('Images/unknown.jpg')
 
-    def _style1(self):
-        # Creating new image
-        achievement = Image.new("RGB", (900, 300), self._get_color('bg_color'))
-
-        # Pasting icon
-        icon = None
-        if not self.image:
-            icon = Image.open('../Images/unknown.jpg')
-        else:
-            resp = requests.get(self.image)     # Downloading image
-            icon = Image.open(BytesIO(resp.content)).resize((300, 300))
-        achievement.paste(icon)
-
-        # Creating drawer
-        d = ImageDraw.Draw(achievement)
-
-        # Writing message
-        font = ImageFont.truetype("Fonts/FlowExt-Bold.otf", 45)
-        d.text((406, 0), self.lang['unlocked'], font=font, fill=self._get_color('text_color'))
-
-        # Writing name
-        self.name = f"«{self.name}»"
-        size = 70
-        while d.textsize(self.name, ImageFont.truetype("Fonts/FlowExt-Bold.otf", size))[0] > 550:
-            size -= 1
-        font = ImageFont.truetype("Fonts/FlowExt-Bold.otf", size)
-        pos = (
-            300 + (600 - d.textsize(self.name, font)[0]) // 2,
-            (300 - d.textsize(self.name, font)[1]) // 2
-        )
-        d.text(pos, self.name, font=font, fill=self._get_color('text_color'))
-
-        # Copyright
-        text = "vk.com/achievebot"
-        if 'from_service' in self.params and self.params['from_service'] == 't.me':
-            text = "t.me/dostizbot"
-        font = ImageFont.truetype("Fonts/FlowExt-Bold.otf", 14)
-        d.text((790, 280), text, font=font, fill=self._get_color('text_color'))
-
-        # Saving
-        del d
-        self.achievement = BytesIO()
-        achievement.save(self.achievement, 'PNG')
-        self.achievement.seek(0)
-
-    def get(self):
-        return self.achievement
+        # Downloading image
+        resp = requests.get(url)
+        return Image.open(BytesIO(resp.content))

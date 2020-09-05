@@ -3,6 +3,7 @@ import vk_api
 from random import randint
 from os import environ as env
 from Achievement import Achievement
+from .cmd_handler import CommandHandler
 from lang import lang, lang_ids
 
 
@@ -19,7 +20,7 @@ class VK:
 
         self.request = request
 
-    def get_response(self):
+    def handle(self):
         # Request type
         r_type = self.request['type']
         req = self.request
@@ -35,13 +36,22 @@ class VK:
 
         # New message event
         if r_type == 'message_new':
-            self._message_new()
+            resp = self._message_new()
+            # TODO: Handle resp
 
         # Sending ok to vk
         return 'ok'
 
     # Events #
     def _message_new(self):
+        # Checking commands
+        if 'payload' in self.request['object']['message']:
+            handler = CommandHandler(self.request['object']['message']['payload'])
+            return handler.handle()
+
+        return Achievement()
+
+
         # TODO: Read message
         msg = self.request['object']['message']
         sender = msg['from_id']

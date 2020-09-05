@@ -19,22 +19,28 @@ class AchievementStyle:
         :key message: Message "Achievement unlocked" or other, should be str
         :key msg_size: Max font size of message, should be int
         :key msg_pos: Position of message (top_right, bottom_left), should be tuple
+        :key msg_color: Color of message, should be PIL.ImageColor
 
         Icon:
         :key img_pos: Position for icon, should be tuple
         :key img_shape: Shape of icon, should be str
 
         Background:
-        :key bg_image: Background image filepath, should be str
+        :key bg_image: Background image, should be PIL.Image
         :key bg_color: Background color, should be PIL.ImageColor
+
+        Foreground:
+        :key fg_image: Foreground png image (for effects), should be PIL.Image
 
         Name:
         :key name_size: Max font size of name, should be int
-        :key name_pos: Static position of name (top_right, bottom_left), should be tuple
+        :key name_pos: Position of name (top_right, bottom_left), should be tuple
+        :key name_color: Color of name, should be PIL.ImageColor
 
         Description:
         :key desc_size: Max font size of description, should be int
         :key desc_pos: Position of description lines (top_right, bottom_left), should be tuple
+        :key desc_color: Color of description, should be PIL.ImageColor
         """
 
         self.size = size
@@ -50,8 +56,10 @@ class AchievementStyle:
         values = {
             'use_copyright': True,
             'text_color': ImageColor.getrgb("#FFFFFF"),
+            'img_pos': (0, 0),
             'img_shape': 'square',
             'bg_color': ImageColor.getrgb("#000000"),
+            'fg_image': None,
             'desc_size': 26
         }
         # Setting default values
@@ -82,18 +90,26 @@ class AchievementStyle:
             pos[0][0] + (width - size[0]) // 2,
             pos[0][1] + (height - size[1]) // 2
         )
-        drawer.text(draw_pos, text, font=self._get_font(font_code), fill=self.params['text_color'])
+
+        if font_code + '_color' in self.params.keys():
+            drawer.text(draw_pos, text, font=self._get_font(font_code), fill=self.params[font_code + '_color'])
+        else:
+            drawer.text(draw_pos, text, font=self._get_font(font_code), fill=self.params['text_color'])
 
     def generate(self, name: str, icon: Image = None, description: str = None):
-        image = Image.new("RGB", self.size, self.params['bg_color'])
+        image = Image.new("RGBA", self.size, self.params['bg_color'])
         drawer = ImageDraw.Draw(image)
+
+        # Adding background
+        if 'bg_image' in self.params.keys():
+            image.paste(self.params['bg_image'])
 
         # Adding icon
         if not icon:
             self.params['img_shape'] = None
 
         if self.params['img_shape'] == 'square':
-            image.paste(icon.resize(self.icon_size))
+            image.paste(icon.resize(self.icon_size), self.params['img_pos'])
         elif self.params['img_shape'] == 'circle':
             mask = Image.new("L", self.icon_size, 0)
             # Mask drawer
@@ -114,9 +130,14 @@ class AchievementStyle:
         # Adding copyright
         if self.params['use_copyright']:
             text = "vk.com/achievebot"
-            font = ImageFont.truetype("Fonts/FlowExt-Bold.otf", 14)
+            font = ImageFont.truetype(self.font, 14)
             size = drawer.textsize(text, font)
-            pos = (self.size[0] - size[0], self.size[1] - size[1])
+            pos = (self.size[0] - size[0] - 5, self.size[1] - size[1] - 5)
             drawer.text(pos, text, font=font, fill=self.params['text_color'])
+
+        # Adding effects
+        if self.params['fg_image']:
+            from .utils import alpha_composite
+            return alpha_composite(self.params['fg_image'], image)
 
         return image

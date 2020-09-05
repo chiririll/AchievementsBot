@@ -10,8 +10,6 @@ lang = {
         'unnamed': "Achievement without name?",
         'colors': {},
         'params': {
-            'description': 'desc',
-
             'language': 'lang',
 
             'bg': 'bg_color',
@@ -43,15 +41,12 @@ lang = {
             'лаймовый': 'lime',
             'оранжевый': 'orange',
             'желтый': 'yellow',
-            'тумно-синий': 'navy',
+            'темно-синий': 'navy',
             'синий': 'blue',
             'бирюзовый': 'teal',
             'голубой': 'cyan'
         },
         'params': {
-            # Description
-            'опис': 'desc',
-            'описание': 'desc',
             # Language
             'язык': 'lang',
             # Style
@@ -63,6 +58,8 @@ lang = {
             # Image to search
             'поиск': 'search_request',
             'искать': 'search_request',
+            'картинка': 'search_request',
+            'фото': 'search_request',
             # Search all images
             'все': 'search_all',
             'все картинки': 'search_all'
