@@ -1,4 +1,6 @@
 import requests
+
+from API import Response, Keyboard, Button
 from .utils import get_google
 from .style import AchievementStyle
 from lang import lang
@@ -86,14 +88,17 @@ class Achievement:
                 'params': self.params
             }
 
-            keyboard = [
-                {'label': 'other_styles', 'color': 'normal', 'payload': payload},
-                {'label': 'other_images', 'color': 'normal', 'payload': payload}
-            ]
+            keyboard = Keyboard(inline=True)
 
-            return {'error': False, 'image': image, 'inline': True, 'keyboard': keyboard}
+            payload['command'] = 'other_styles'
+            keyboard.add_button(Button('other_styles', payload=payload))
+
+            payload['command'] = 'other_styles'
+            keyboard.add_button(Button('other_images', payload=payload))
+
+            return Response(images=[image], keyboard=keyboard)
         else:
-            return {'error': True, 'message': 'unknown_style'}
+            return Response(message="unknown_style")
 
     @staticmethod
     def get_max(key):

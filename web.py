@@ -1,26 +1,48 @@
-from flask import Flask, send_file, request
-
-from Achievement import Achievement
+from threading import Thread
+from flask import Flask, request
+from os import environ as env
 from API import VK
 
 app = Flask(__name__)
-
-
-@app.route('/new/<name>')
-def new(name):
-    ach = Achievement(name)
-    return send_file(ach.get(), mimetype='image/PNG')
+threads = []
 
 
 @app.route('/vk', methods=['POST'])
 def vk_api():
-    vk = VK(request.get_json())
-    return vk.get_response()
+    clear_threads()
+
+    req = request.get_json()
+
+    # Returning confirmation code
+    if req['type'] == 'confirmation':
+        return env['VK_CONFIRM']
+    # Checking secret
+    elif req['secret'] != env['VK_SECRET']:
+        return 'not vk'
+
+    vk = VK(req)
+    threads.append(Thread(target=vk.handle))
+    threads[-1].start()
+
+    print(threads)
+
+    return 'ok'
 
 
 @app.route('/telegram')
 def telegram():
+    clear_threads()
+
     return 'ok'
+
+
+def clear_threads():
+    i = 0
+    while i < len(threads):
+        if not threads[i].isAlive():
+            del threads[i]
+        else:
+            i += 1
 
 
 if __name__ == '__main__':

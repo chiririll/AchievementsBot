@@ -1,4 +1,5 @@
 from Achievement import get_google
+from API import Keyboard, Response
 
 
 class CommandHandler:
@@ -23,34 +24,29 @@ class CommandHandler:
         return self.commands[self.cmd]()
 
     # Commands #
-    def _start(self):
-        return {'message': 'greeting'}
+    @staticmethod
+    def _start():
+        return Response(message="Greeting")
 
     def _other_images(self):
-        urls = []
         if self.payload['params']['search_request']:
             urls = get_google(self.payload['params']['search_request'], self.payload['params']['search_all'], True)
         else:
             urls = get_google(self.payload['params']['name'], self.payload['params']['search_all'], True)
 
-        keyboard = []
-        for i in range(1, 10):
-            payload = self.payload
-            payload['img_index'] = i
-            payload['command'] = 'generate'
-            keyboard.append({'label': str(i), 'color': 'normal', 'payload': payload})
+        self.payload['command'] = 'generate'
+        keyboard = Keyboard(one_time=True)
+        keyboard.add_buttons_range(1, 10, payload=self.payload, index_field="img_index")
 
-        return {'message': 'choose_image', 'img_urls': urls, 'keyboard': keyboard}
+        return Response(message="choose_image", img_urls=urls, keyboard=keyboard)
 
     def _other_styles(self):
-        keyboard = []
-        for i in range(1, 4):
-            payload = self.payload
-            payload['style'] = i
-            payload['command'] = 'generate'
-            keyboard.append({'label': str(i), 'color': 'normal', 'payload': payload})
+        self.payload['command'] = 'generate'
+        keyboard = Keyboard(one_time=True)
+        keyboard.add_buttons_range(1, 4, payload=self.payload, index_field="style")
 
-        return {'message': 'choose_image', 'attachments': [], 'keyboard': keyboard}
+        return Response(message="choose_style", keyboard=keyboard)
 
     def _generate(self):
+        # TODO: Generate
         pass

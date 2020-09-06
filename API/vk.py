@@ -1,10 +1,9 @@
+import time
 import requests
-import vk_api
-from random import randint
+from vk_api import keyboard, vk_api, ApiError
 from os import environ as env
 from Achievement import Achievement
 from .cmd_handler import CommandHandler
-from lang import lang, lang_ids
 
 
 class VK:
@@ -20,75 +19,70 @@ class VK:
 
         self.request = request
 
+    # Handler
     def handle(self):
         # Request type
         r_type = self.request['type']
-        req = self.request
-
-        # Returning confirmation code
-        if r_type == 'confirmation':
-            return env['VK_CONFIRM']
-        # Checking secret
-        elif req['secret'] != env['VK_SECRET']:
-            return 'not vk'
-
-        del req
 
         # New message event
         if r_type == 'message_new':
             resp = self._message_new()
             # TODO: Handle resp
 
-        # Sending ok to vk
-        return 'ok'
+    # Functions #
+    def _upload_photo(self, photo):
+        # Uploading achievement
+        sender = self.request['object']['message']['peer_id']
+
+        server_url = self.api.photos.getMessagesUploadServer(peer_id=sender)['upload_url']
+        upload_req = requests.post(server_url, files={
+            'photo': ('photo.png', photo, 'image/png')
+        }).json()
+        photo = self.api.photos.saveMessagesPhoto(**upload_req)[0]
+
+        return 'photo' + str(photo['owner_id']) + '_' + str(photo['id']) + '_' + photo['access_key']
+
+    def _make_keyboard(self, kb: list):
+        if not self.request['object']['client_info']['inline_keyboard']:
+            kb[0]['inline'] = False
+
+        vk_kb = keyboard.VkKeyboard(inline=kb[0]['inline'], one_time=kb[0]['one_time'])
+        kb = kb[1:]
+
+        count = 0
+        for btn in kb:
+            count += 1
+            if type(btn) is str and btn == 'nl':
+                count = 0
+                vk_kb.add_line()
+
+            vk_kb.add_button(btn['label'], btn['color'], payload=btn['payload'])
+            if count >= 4:
+                count = 0
+                vk_kb.add_line()
+
+        return vk_kb
+
+    def _send_message(self, **params):
+        params['random_id'] = self.request['object']['message']['id']
+        params['peer _id'] = self.request['object']['message']['peer_id']
+        try:
+            self.api.messages.send(**params)
+        except ApiError:
+            pass
+    # --------- #
 
     # Events #
     def _message_new(self):
+        msg = self.request['object']['message']
+
+        # Reading message
+        self.api.messages.markAsRead(peer_id=msg['peer_id'], message_ids=[msg['id']])
+
         # Checking commands
         if 'payload' in self.request['object']['message']:
             handler = CommandHandler(self.request['object']['message']['payload'])
             return handler.handle()
-
-        return Achievement()
-
-
-        # TODO: Read message
-        msg = self.request['object']['message']
-        sender = msg['from_id']
-
-        lcode = 'ru'
-        if 0 <= self.request['object']['client_info']['lang_id'] < len(lang_ids):
-            lcode = lang_ids[self.request['object']['client_info']['lang_id']]
-
-        # Working with text
-        lines = msg['text'].split('\n')
-
-        # Params
-        params = {}
-        if len(lines) > 1:
-            vk_params = lines[len(lines)-1].split(',')
-            for param in vk_params:
-                try:
-                    p_name, p_val = param.split(':', 2)
-                except ValueError:
-                    continue
-
-                p_name = p_name.strip().lower()
-                p_val = p_val.strip()
-
-                if p_name in lang[lcode]['params'].keys():
-                    params[lang[lcode]['params'][p_name]] = p_val
-                else:
-                    params[p_name] = p_val
-
-        # Achievement name
-        name = lines[0].strip()
-        if len(name) > Achievement.get_max('name'):
-            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang[lcode]['long_name'] + ' ' + str(Achievement.get_max('name')))
-            return
-        elif name == "":
-            self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), message=lang[lcode]['unnamed'])
-            return
 
         # Checking attachments
         image = None
@@ -100,20 +94,5 @@ class VK:
                         break
                 break
 
-        # Creating achievement
-        params['image'] = image
-        params['lang'] = lcode
-        a = Achievement(name, **params)
-
-        # Uploading achievement
-        server_url = self.api.photos.getMessagesUploadServer(peer_id=sender)['upload_url']
-        upload_req = requests.post(server_url, files={
-            'photo': ('photo.png', a.get(), 'image/png')
-        }).json()
-        photo = self.api.photos.saveMessagesPhoto(**upload_req)[0]
-        photo = 'photo' + str(photo['owner_id']) + '_' + str(photo['id']) + '_' + photo['access_key']
-
-        # Sending achievement to user
-        self.api.messages.send(user_id=sender, random_id=randint(-2147483648, 2147483647), attachment=photo)
-
-    # ----- #
+        ach = Achievement(msg, image)
+        return ach.generate()
