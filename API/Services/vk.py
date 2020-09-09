@@ -1,9 +1,8 @@
-import time
 import requests
 from vk_api import keyboard, vk_api, ApiError
 from os import environ as env
 from Achievement import Achievement
-from .cmd_handler import CommandHandler
+from API.Utils import CommandHandler
 
 
 class VK:

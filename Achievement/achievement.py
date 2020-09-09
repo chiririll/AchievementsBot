@@ -1,6 +1,6 @@
 import requests
 
-from API import Response, Keyboard, Button
+from API.Utils import Response, Keyboard, Button
 from .utils import get_google
 from .style import AchievementStyle
 from lang import lang

@@ -1,5 +1,6 @@
-from Achievement import get_google
-from API import Keyboard, Response
+from Achievement.utils import get_google
+from .keyboard import Keyboard
+from .api_response import Response
 
 
 class CommandHandler:

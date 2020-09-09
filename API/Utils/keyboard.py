@@ -2,12 +2,16 @@ from vk_api.keyboard import VkKeyboard
 
 
 class Button:
-    def __init__(self, label, payload={}):
+    def __init__(self, label, payload=None):
         """
         Class for keyboard button
         :param label: Text on button
         :param payload: payload
         """
+
+        if payload is None:
+            payload = {}
+
         self.label = label
         self.payload = payload
 
