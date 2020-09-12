@@ -1,3 +1,5 @@
+from io import BytesIO
+
 from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageFont
 
 
@@ -138,6 +140,8 @@ class AchievementStyle:
         # Adding effects
         if self.params['fg_image']:
             from .utils import alpha_composite
-            return alpha_composite(self.params['fg_image'], image)
+            image = alpha_composite(self.params['fg_image'], image)
 
-        return image
+        file = BytesIO()
+        image.save(file, 'png')
+        return file

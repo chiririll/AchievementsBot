@@ -39,7 +39,6 @@ class Achievement:
         lines = message.split('\n')
 
         self.name = lines[0]
-        self.icon = self._get_image(img_url)
         self.img_url = img_url
         self.description = ""
         self.params = {}
@@ -61,22 +60,24 @@ class Achievement:
                 else:
                     self.params[p_name] = p_val
 
-        # Lang
-        if 'lang' in self.params.keys() and self.params['lang'] in lang.keys():
-            self.lang = lang[self.params['lang']]
-
-        self._check_params()
-
         # Description
         if len(lines) > 2:
             self.description = ' '.join(lines[1:-1])
 
+        self._check_params()
+
+        self.icon = self._get_image(img_url)
+
+        # Lang
+        if 'lang' in self.params.keys() and self.params['lang'] in lang.keys():
+            self.lang = lang[self.params['lang']]
+
     def generate(self):
         # Checking length
         if len(self.name) > self.get_max('name'):
-            return {'error': True, 'message': "long_name"}
+            return Response(message="long_name")
         if len(self.description) > self.get_max('desc'):
-            return {'error': True, 'message': "long_desc"}
+            return Response(message="long_desc")
 
         if type(self.params['style']) is int and 0 < self.params['style'] <= len(self.styles):
             image = self.styles[self.params['style']-1].generate(self.name, self.icon, self.description)
@@ -112,13 +113,13 @@ class Achievement:
     def _check_params(self):
         defaults = {
             'lang': 'ru',
-            'style': '0',
+            'style': 1,
             'bg_color': '#000000',
             'text_color': '#FFFFFF',
             'search_request': None,
             'search_all': False
         }
-        for k, v in defaults:
+        for k, v in defaults.items():
             if k not in self.params.keys():
                 self.params[k] = v
 

@@ -1,3 +1,4 @@
+import random
 import unittest
 import requests
 import json as j
@@ -30,7 +31,8 @@ class VkTests(unittest.TestCase):
             'group_id': 198302424,
             'object': {
                 'message': {
-                    'from_id': 241091493,
+                    'id': random.randint(-2000000000, 2000000000),
+                    'peer_id': 241091493,
                     'text': "test\nbg_color: #3aEb6a, текст: зеленый",
                     'attachments': []
                 },
@@ -44,11 +46,13 @@ class VkTests(unittest.TestCase):
 
     def test_custom_image(self):
         json = j.load(open('data/attachments.json', 'r'))
+        json['object']['message']['id'] = random.randint(-2000000000, 2000000000)
         req = requests.post('http://127.0.0.1:5000/vk', json=json)
         self.assertEqual('ok', req.text)
 
     def test_no_name(self):
         json = j.load(open('data/attachments_no_text.json', 'r'))
+        json['object']['message']['id'] = random.randint(-2000000000, 2000000000)
         req = requests.post('http://127.0.0.1:5000/vk', json=json)
         self.assertEqual('ok', req.text)
 
@@ -59,7 +63,8 @@ class VkTests(unittest.TestCase):
             'group_id': 198302424,
             'object': {
                 'message': {
-                    'from_id': 241091493,
+                    'id': random.randint(-2000000000, 2000000000),
+                    'peer_id': 241091493,
                     'text': 40 * 'a',
                     'attachments': []
                 },

@@ -25,8 +25,7 @@ class CommandHandler:
         return self.commands[self.cmd]()
 
     # Commands #
-    @staticmethod
-    def _start():
+    def _start(self):
         return Response(message="Greeting")
 
     def _other_images(self):
@@ -50,4 +49,4 @@ class CommandHandler:
 
     def _generate(self):
         # TODO: Generate
-        pass
+        return Response(message="Потом доделаю...")

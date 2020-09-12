@@ -1,8 +1,11 @@
+from io import BytesIO
+from random import randint
+
 import requests
-from vk_api import keyboard, vk_api, ApiError
+from vk_api import vk_api, ApiError, VkUpload
 from os import environ as env
 from Achievement import Achievement
-from API.Utils import CommandHandler
+from API.Utils import CommandHandler, Response
 
 
 class VK:
@@ -26,49 +29,50 @@ class VK:
         # New message event
         if r_type == 'message_new':
             resp = self._message_new()
-            # TODO: Handle resp
+            self._send_message(resp)
 
     # Functions #
-    def _upload_photo(self, photo):
+    def _upload_photo(self, photo: BytesIO):
         # Uploading achievement
         sender = self.request['object']['message']['peer_id']
 
+        # TODO: Fix
         server_url = self.api.photos.getMessagesUploadServer(peer_id=sender)['upload_url']
         upload_req = requests.post(server_url, files={
-            'photo': ('photo.png', photo, 'image/png')
+            'photo': ('photo', photo, f'image/png')
         }).json()
+
         photo = self.api.photos.saveMessagesPhoto(**upload_req)[0]
 
         return 'photo' + str(photo['owner_id']) + '_' + str(photo['id']) + '_' + photo['access_key']
 
-    def _make_keyboard(self, kb: list):
-        if not self.request['object']['client_info']['inline_keyboard']:
-            kb[0]['inline'] = False
+    def _send_message(self, resp: Response):
+        params = {
+            'random_id': self.request['object']['message']['id'],
+            'peer_id': self.request['object']['message']['peer_id'],
+        }
 
-        vk_kb = keyboard.VkKeyboard(inline=kb[0]['inline'], one_time=kb[0]['one_time'])
-        kb = kb[1:]
+        if resp.message != '':
+            params['message'] = resp.message
 
-        count = 0
-        for btn in kb:
-            count += 1
-            if type(btn) is str and btn == 'nl':
-                count = 0
-                vk_kb.add_line()
+        if resp.keyboard:
+            params['keyboard'] = resp.keyboard.get_vk()
 
-            vk_kb.add_button(btn['label'], btn['color'], payload=btn['payload'])
-            if count >= 4:
-                count = 0
-                vk_kb.add_line()
+        if len(resp.img_urls) > 0 or len(resp.images) > 0:
+            params['attachments'] = []
 
-        return vk_kb
+        for img in resp.images:
+            params['attachments'].append(self._upload_photo(img))
 
-    def _send_message(self, **params):
-        params['random_id'] = self.request['object']['message']['id']
-        params['peer _id'] = self.request['object']['message']['peer_id']
+        for url in resp.img_urls:
+            req = requests.get(url)
+            params['attachments'].append(self._upload_photo(BytesIO(req.content)))
+
+        self.api.messages.send(**params)
         try:
-            self.api.messages.send(**params)
-        except ApiError:
             pass
+        except ApiError:
+            print(ApiError)
     # --------- #
 
     # Events #
@@ -76,7 +80,7 @@ class VK:
         msg = self.request['object']['message']
 
         # Reading message
-        self.api.messages.markAsRead(peer_id=msg['peer_id'], message_ids=[msg['id']])
+        # self.api.messages.markAsRead(peer_id=msg['peer_id'], message_ids=[msg['id']])
 
         # Checking commands
         if 'payload' in self.request['object']['message']:
@@ -93,5 +97,5 @@ class VK:
                         break
                 break
 
-        ach = Achievement(msg, image)
+        ach = Achievement(msg['text'], image)
         return ach.generate()

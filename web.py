@@ -1,7 +1,7 @@
 from threading import Thread
 from flask import Flask, request
 from os import environ as env
-from API import VK
+from API.Services import VK
 
 app = Flask(__name__)
 threads = []
@@ -24,8 +24,6 @@ def vk_api():
     threads.append(Thread(target=vk.handle))
     threads[-1].start()
 
-    print(threads)
-
     return 'ok'
 
 
@@ -39,7 +37,7 @@ def telegram():
 def clear_threads():
     i = 0
     while i < len(threads):
-        if not threads[i].isAlive():
+        if not threads[i].is_alive():
             del threads[i]
         else:
             i += 1
