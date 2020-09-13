@@ -1,8 +1,6 @@
-from io import BytesIO
-from random import randint
-
 import requests
-from vk_api import vk_api, ApiError, VkUpload
+from io import BytesIO
+from vk_api import vk_api, ApiError
 from os import environ as env
 from Achievement import Achievement
 from API.Utils import CommandHandler, Response
@@ -22,6 +20,7 @@ class VK:
         self.request = request
 
     # Handler
+    # TODO: Fix payload
     def handle(self):
         # Request type
         r_type = self.request['type']
@@ -36,10 +35,9 @@ class VK:
         # Uploading achievement
         sender = self.request['object']['message']['peer_id']
 
-        # TODO: Fix
         server_url = self.api.photos.getMessagesUploadServer(peer_id=sender)['upload_url']
         upload_req = requests.post(server_url, files={
-            'photo': ('photo', photo, f'image/png')
+            'photo': ('photo.png', photo, 'image/png')
         }).json()
 
         photo = self.api.photos.saveMessagesPhoto(**upload_req)[0]
@@ -49,7 +47,7 @@ class VK:
     def _send_message(self, resp: Response):
         params = {
             'random_id': self.request['object']['message']['id'],
-            'peer_id': self.request['object']['message']['peer_id'],
+            'peer_id': self.request['object']['message']['peer_id']
         }
 
         if resp.message != '':
@@ -59,14 +57,14 @@ class VK:
             params['keyboard'] = resp.keyboard.get_vk()
 
         if len(resp.img_urls) > 0 or len(resp.images) > 0:
-            params['attachments'] = []
+            params['attachment'] = []
 
         for img in resp.images:
-            params['attachments'].append(self._upload_photo(img))
+            params['attachment'].append(self._upload_photo(img))
 
         for url in resp.img_urls:
             req = requests.get(url)
-            params['attachments'].append(self._upload_photo(BytesIO(req.content)))
+            params['attachment'].append(self._upload_photo(BytesIO(req.content)))
 
         self.api.messages.send(**params)
         try:

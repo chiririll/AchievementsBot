@@ -143,5 +143,7 @@ class AchievementStyle:
             image = alpha_composite(self.params['fg_image'], image)
 
         file = BytesIO()
-        image.save(file, 'png')
+        image.save(file, 'PNG')
+        file.seek(0)
+
         return file

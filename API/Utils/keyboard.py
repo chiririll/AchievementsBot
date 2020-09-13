@@ -67,9 +67,10 @@ class Keyboard:
         for line in self.buttons:
             for button in line:
                 kb.add_button(button.label, payload=button.payload)
-            kb.add_line()
+            if self.buttons.index(line) != len(self.buttons) - 1:
+                kb.add_line()
 
-        return kb
+        return kb.get_keyboard()
 
     def get_telegram(self):
         pass

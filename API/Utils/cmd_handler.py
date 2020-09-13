@@ -13,13 +13,16 @@ class CommandHandler:
 
         self.commands = {
             'start': self._start,
-            'other_images': self._other_images(),
-            'other_styles': self._other_styles(),
-            'generate': None
+            'oim': self._other_images(),
+            'ost': self._other_styles(),
+            'gen': None
         }
 
         self.payload = payload
-        self.cmd = self.payload['command']
+        if 'cmd' in self.payload.keys():
+            self.cmd = self.payload['cmd']
+        else:
+            self.cmd = self.payload['command']
 
     def handle(self):
         return self.commands[self.cmd]()
@@ -34,14 +37,14 @@ class CommandHandler:
         else:
             urls = get_google(self.payload['params']['name'], self.payload['params']['search_all'], True)
 
-        self.payload['command'] = 'generate'
+        self.payload['command'] = 'gen'
         keyboard = Keyboard(one_time=True)
         keyboard.add_buttons_range(1, 10, payload=self.payload, index_field="img_index")
 
         return Response(message="choose_image", img_urls=urls, keyboard=keyboard)
 
     def _other_styles(self):
-        self.payload['command'] = 'generate'
+        self.payload['command'] = 'gen'
         keyboard = Keyboard(one_time=True)
         keyboard.add_buttons_range(1, 4, payload=self.payload, index_field="style")
 

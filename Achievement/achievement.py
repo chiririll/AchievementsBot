@@ -80,7 +80,7 @@ class Achievement:
             return Response(message="long_desc")
 
         if type(self.params['style']) is int and 0 < self.params['style'] <= len(self.styles):
-            image = self.styles[self.params['style']-1].generate(self.name, self.icon, self.description)
+            image = self.styles[self.params['style'] - 1].generate(self.name, self.icon, self.description)
 
             payload = {
                 'name': self.name,
@@ -91,10 +91,10 @@ class Achievement:
 
             keyboard = Keyboard(inline=True)
 
-            payload['command'] = 'other_styles'
+            payload['cmd'] = 'ost'
             keyboard.add_button(Button('other_styles', payload=payload))
 
-            payload['command'] = 'other_styles'
+            payload['cmd'] = 'oim'
             keyboard.add_button(Button('other_images', payload=payload))
 
             return Response(images=[image], keyboard=keyboard)
@@ -113,7 +113,7 @@ class Achievement:
     def _check_params(self):
         defaults = {
             'lang': 'ru',
-            'style': 1,
+            'style': 3,
             'bg_color': '#000000',
             'text_color': '#FFFFFF',
             'search_request': None,
