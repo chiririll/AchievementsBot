@@ -17,7 +17,6 @@ def get_size(meta_text):
 
 
 # Google
-# TODO: Refactor parser
 def get_google(text, search_all=False):
     url = "https://www.google.ru/search?tbm=isch&tbs=iar:s&as_q=" + text
     if search_all:
@@ -28,7 +27,7 @@ def get_google(text, search_all=False):
         return None
 
     soup = BeautifulSoup(req.text, features="html.parser")
-    images = soup.findAll("img", {"class": "yWs4tf"})
+    images = soup.findAll("img")[1:]
 
     if len(images) > 0:
         return choice(images)['src']
