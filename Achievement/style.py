@@ -3,25 +3,51 @@ from zipfile import ZipFile
 
 
 class Style:
-    def __init__(self, style, lang='ENG'):
-        zf = ZipFile(style, 'r')
 
-        self.__style = json.loads(zf.read("style.json"))
-        self.__attachments = {}
-        self.__lang = None
+    __style = {}
+    __attachments = {}
+    __lang = None
+
+    def __init__(self, style, lang='ENG'):
+        # Opening style file
+        if type(style) is str:
+            style = open(style, 'rb')
+
+        # For .achst files
+        def load_zip():
+            zf = ZipFile(style, 'r')
+            # Extracting style
+            self.__style = json.loads(zf.read("style.json"))
+            # Extracting attachments
+            for file in zf.filelist:
+                path = file.filename.split('/', 1)
+                if path[0] == "res" and '/' not in path[1] and len(path[1]) > 0:
+                    self.__attachments[path[1]] = zf.read(file.filename)
+            # Closing zip
+            zf.close()
+
+        # For .achs files
+        def load_json():
+            self.__style = json.loads(style.read())
+
+        def detect_type():
+            t = 'achst'
+            if style.read(1) == b'{':
+                t = 'achs'
+            style.seek(0)
+            return t
+
+        # Reading file
+        if detect_type() == 'achst':
+            load_zip()
+        else:
+            load_json()
+
+        # Closing file
+        style.close()
 
         # Checking language
         self.change_lang(lang)
-
-        # Extracting attachments
-        for file in zf.filelist:
-            path = file.filename.split('/', 1)
-            if path[0] == "res" and '/' not in path[1] and len(path[1]) > 0:
-                self.__attachments[path[1]] = zf.read(file.filename)
-
-        zf.close()
-        if type(style) is not str:
-            style.close()
 
     # Info #
     def get_info(self):

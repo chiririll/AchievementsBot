@@ -21,7 +21,7 @@ class AchievementTests(unittest.TestCase):
         ach.generate().save('Images/styles/magical_2.png', 'PNG')
 
     def test_Layout(self):
-        st = Style(open('Styles/Layout.achst', 'rb'))
+        st = Style(open('Styles/Layout.achs', 'rb'))
         ach = Achievement(st, "testing")
         ach.generate().save('Images/styles/layout.png', 'PNG')
 

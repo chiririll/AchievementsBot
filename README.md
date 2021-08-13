@@ -8,7 +8,7 @@
 ### Magical style
 ![Magical style](Images/styles/magical.png)
 
-###Magical 2 style
+### Magical 2 style
 ![Magical 2 style](Images/styles/magical_2.png)
 
 ## Achievements layout
