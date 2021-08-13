@@ -1,0 +1,31 @@
+{
+	"v": "1.0 dev",
+	"name": "Layout",
+	"author": "chiririll",
+	"created": "13.08.2021",
+	"size": [900, 300],
+	"localization": {},
+	"colors": {
+		"_BG": "#000000",
+		"icon": "#00ff4b",
+		"msg": "#ff00e9",
+		"name": "#2000ff"
+	},
+	"layers": [
+		{
+			"@type": "Rectangle",
+			"xy": [0, 0, 300, 300],
+			"fill": "@color/icon"
+		},
+		{
+			"@type": "Rectangle",
+			"xy": [310, 10, 890, 100],
+			"fill": "@color/msg"
+		},
+		{
+			"@type": "Rectangle",
+			"xy": [310, 100, 890, 250],
+			"fill": "@color/name"
+		}
+	]
+}
