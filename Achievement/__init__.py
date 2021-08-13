@@ -1,2 +1,2 @@
 from .achievement import Achievement
-from .style import AchievementStyle
+from .style import Style
