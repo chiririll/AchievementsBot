@@ -18,6 +18,8 @@ class Achievement:
         # TODO: check params
         pass
 
+    # TODO: @color/%color% in every field
+    # TODO: add multiline text for description
     def generate(self):
         handlers = {
             'image': self.__draw_image,
@@ -111,7 +113,6 @@ class Achievement:
             'rectangle': self.__drawer.rectangle,
             'rounded_rectangle': self.__drawer.rounded_rectangle
         }
-        # TODO: @color/%color% in every field
         types.get(layer['@type'], lambda: None)(**self.__clear_layer(layer))
     # ======= #
 
