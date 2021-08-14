@@ -1,12 +1,22 @@
 import logging
+import random
 from os import environ as env
-from Achievement import Achievement
-from Styles import styles
+
+import telegram.ext
+
 import Tools
 
-from telegram import Update, ForceReply
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from Achievement import Achievement, Style
+from Styles import styles
 
+from telegram import Update, ForceReply, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
+
+# Logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 
 # Commands #
@@ -29,40 +39,48 @@ def setlang(update: Update, context: CallbackContext) -> None:
 
 
 def achlang(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('achlang')
+    keyboard = []
+    for lang in styles[context.chat_data.get('style', 0)].get_langs():
+        keyboard.append([InlineKeyboardButton(f"langs.{lang}", callback_data=f"achlang.{lang}")])
 
-
-def styles_command(update: Update, context: CallbackContext) -> None:
-    reply = []
-    for i, style in enumerate(styles.keys()):
-        reply.append(f"#{i}: {style.title()}")
-    update.message.reply_text('\n'.join(reply))
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text("achlang.select", reply_markup=reply_markup)
 
 
 def setstyle(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('setstyle')
+    keyboard = []
+    for i, st in enumerate(styles):
+        keyboard.append([InlineKeyboardButton(st.get_name(), callback_data=f"setstyle.{i}")])
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text("setstyle.select", reply_markup=reply_markup)
+
 # ======== #
 
 
 def create_achievement(update: Update, context: CallbackContext) -> None:
-    # Checking message
-    msg = update.message.text
-    if not msg:
-        update.message.reply_text("error.null_text")
-        return
-    msg = msg.split('\n')
-    vals = {
-        'style': styles.get('default'),
-        'name': msg[0],
-        'icon': Tools.search_image(msg[0]),
-        'description': msg[1] if len(msg) > 1 else ''
-    }
-
-    errs = Achievement.check_values(**vals)
-    for err in errs:
+    # Checking name & description
+    vals = Achievement.parse_message(update.message.text)
+    for err in Achievement.check_values(**vals):
         update.message.reply_text(err)
-    if len(errs) > 0:
+        vals = None
+    if not vals:
         return
+
+    # Icon
+    vals['icon'] = Tools.search_image(vals['name'])
+
+    # Style
+    i = context.chat_data.get('style', 0)
+    if i < 0:
+        i = random.randint(0, len(styles))
+    i = i if 0 <= i < len(styles) else 0  # Checking index
+    vals['style'] = styles[i]
+
+    # Setting language
+    resp = vals['style'].change_lang(context.chat_data.get('ach_lang', 'ENG'))
+    if resp:
+        update.message.reply_text("warning.ach.lang.none")
 
     ach = Achievement(**vals)
     gen = ach.generate()
@@ -72,8 +90,36 @@ def create_achievement(update: Update, context: CallbackContext) -> None:
         update.message.reply_photo(gen)
 
 
+def testphoto(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("testphoto")
+
+
+def callback_button(update: Update, context: CallbackContext) -> None:
+    # Commands #
+    def setstyle(params):
+        context.chat_data['style'] = int(params)
+        update.callback_query.message.reply_text("setstyle.success")
+
+    def achlang(params):
+        context.chat_data['ach_lang'] = params
+        update.callback_query.message.reply_text("achlang.success")
+    # ======== #
+    commands = {
+        'setstyle': setstyle,
+        'achlang': achlang
+    }
+
+    query = update.callback_query
+    query.answer()
+    data = query.data.split('.', 1)
+    commands.get(data[0], lambda p: None)(data[1])
+
+
 def main() -> None:
     """Start the bot."""
+    # Creating database connection
+    # db = DBHelper.Database("Config/Database.json", functions=Tools.DB_FUNCS)
+
     # Create the Updater and pass it bot's token.
     updater = Updater(env.get("TELEGRAM_TOKEN"))
 
@@ -85,7 +131,6 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("help", help_command))
     dispatcher.add_handler(CommandHandler("setlang", setlang))
     dispatcher.add_handler(CommandHandler("achlang", achlang))
-    dispatcher.add_handler(CommandHandler("styles", styles_command))
     dispatcher.add_handler(CommandHandler("setstyle", setstyle))
     # dispatcher.add_handler(CommandHandler("mystyles", help_command))
     # dispatcher.add_handler(CommandHandler("addstyle", help_command))
@@ -93,7 +138,12 @@ def main() -> None:
 
     # Messages #
     dispatcher.add_handler(MessageHandler(~Filters.command & Filters.text, create_achievement))
+    dispatcher.add_handler(MessageHandler(~Filters.command & Filters.text & Filters.photo, testphoto))
     # ======== #
+
+    # Buttons #
+    dispatcher.add_handler(CallbackQueryHandler(callback_button))
+    # ======= #
 
     # Start the Bot
     updater.start_polling()

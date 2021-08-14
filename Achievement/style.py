@@ -63,8 +63,10 @@ class Style:
         ]
         return '\n'.join(info)
 
-    def get_name(self):
-        return self.__style['name']
+    def get_name(self, lang=None):
+        if not lang:
+            lang = self.__lang
+        return self.__style['localization'].get(lang, {}).get('_name', self.__style['name'])
 
     def get_colors_info(self):
         return self.__style['localization'].get(self.__lang, {}).get('@colors', {})
@@ -81,15 +83,15 @@ class Style:
         # Checking languages and localization field
         if len(self.__style['localization'].keys()) == 0:
             self.__lang = None
-            return 'error.style.lang.null'
+            return 'error'
 
         # Finding language
         if lang in self.__style['localization'].keys():
             self.__lang = lang
-            return 'ok'
+            return
 
         self.__lang = self.__style['localization'].keys()[0]
-        return 'warning.style.lang.unsupported'
+        return 'warning'
     # ============= #
 
     # Generator functions #

@@ -1,0 +1,20 @@
+{
+  "tables": {
+    "users": {
+      "id": ["INT", "NOT NULL", "UNIQUE", "PRIMARY KEY"],
+      "platform": ["INT(1)", "NOT NULL"],
+      "lang": ["INT(1)", "NOT NULL", "DEFAULT 0"],
+      "ach_lang": ["INT(1)", "NOT NULL", "DEFAULT 0"],
+      "style_id": ["INT", "NOT NULL", "DEFAULT 1"]
+    },
+    "styles": {
+      "id": ["INT", "NOT NULL", "UNIQUE", "PRIMARY KEY"],
+      "name": ["VARCHAR(20)", "NOT NULL"],
+      "platform": ["INT(1)", "NOT NULL"],
+      "user_id": ["INT", "NOT NULL", "UNIQUE"],
+      "is_public": ["BOOL", "NOT NULL", "DEFAULT true"],
+      "file_id": ["TEXT", "NOT NULL"],
+      "FOREIGN KEY": ["user_id", "users(id)"]
+    }
+  }
+}

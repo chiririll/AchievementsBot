@@ -34,12 +34,20 @@ class Achievement:
 
     @staticmethod
     def check_values(name: str = '', description: str = '', **kwargs):
-        errs = []
         if len(name) > MAX_NAME:
-            errs.append("error.long_name")
+            yield "error.long_name"
         if len(description) > MAX_DESC:
-            errs.append("error.long_description")
-        return errs
+            yield "error.long_description"
+
+    @staticmethod
+    def parse_message(msg):
+        if not msg:
+            return "error.null_text"
+        msg = msg.split('\n')
+        return {
+            'name': msg[0],
+            'description': msg[1] if len(msg) > 1 else ''
+        }
 
     # TODO: add multiline text for description
     # TODO: add random resource @rand

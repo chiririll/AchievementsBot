@@ -1,8 +1,9 @@
 from io import BytesIO
 from random import choice
-
 import requests
 from bs4 import BeautifulSoup
+
+from .database import DB_FUNCS
 
 
 def search_image(text, search_all=False):
