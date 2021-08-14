@@ -1,16 +1,13 @@
 import logging
-import random
+from io import BytesIO
 from os import environ as env
-
-import telegram.ext
-
-import Tools
-
-from Achievement import Achievement, Style
-from Styles import styles
-
 from telegram import Update, ForceReply, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
+
+import Tools
+import Styles
+from Achievement import Achievement
+
 
 # Logging
 logging.basicConfig(
@@ -40,7 +37,7 @@ def setlang(update: Update, context: CallbackContext) -> None:
 
 def achlang(update: Update, context: CallbackContext) -> None:
     keyboard = []
-    for lang in styles[context.chat_data.get('style', 0)].get_langs():
+    for lang in Styles.get(context.chat_data.get('style')).get_langs():
         keyboard.append([InlineKeyboardButton(f"langs.{lang}", callback_data=f"achlang.{lang}")])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -49,8 +46,9 @@ def achlang(update: Update, context: CallbackContext) -> None:
 
 def setstyle(update: Update, context: CallbackContext) -> None:
     keyboard = []
-    for i, st in enumerate(styles):
+    for i, st in enumerate(Styles.styles):
         keyboard.append([InlineKeyboardButton(st.get_name(), callback_data=f"setstyle.{i}")])
+    keyboard.append([InlineKeyboardButton("Random style", callback_data=f"setstyle.-1")])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text("setstyle.select", reply_markup=reply_markup)
@@ -60,22 +58,21 @@ def setstyle(update: Update, context: CallbackContext) -> None:
 
 def create_achievement(update: Update, context: CallbackContext) -> None:
     # Checking name & description
-    vals = Achievement.parse_message(update.message.text)
+    vals = Achievement.parse_message(update.message.text or update.message.caption)
     for err in Achievement.check_values(**vals):
         update.message.reply_text(err)
         vals = None
     if not vals:
         return
 
-    # Icon
-    vals['icon'] = Tools.search_image(vals['name'])
+    # Icon & style
+    image = None
+    if update.message.photo:
+        photos = update.message.photo
+        image = Tools.download_image(photos[1 if len(photos) > 1 else 0].get_file().file_path)
 
-    # Style
-    i = context.chat_data.get('style', 0)
-    if i < 0:
-        i = random.randint(0, len(styles))
-    i = i if 0 <= i < len(styles) else 0  # Checking index
-    vals['style'] = styles[i]
+    vals['icon'] = image or Tools.search_image(vals['name'])
+    vals['style'] = Styles.get(context.chat_data.get('style'))
 
     # Setting language
     resp = vals['style'].change_lang(context.chat_data.get('ach_lang', 'ENG'))
@@ -90,23 +87,19 @@ def create_achievement(update: Update, context: CallbackContext) -> None:
         update.message.reply_photo(gen)
 
 
-def testphoto(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("testphoto")
-
-
 def callback_button(update: Update, context: CallbackContext) -> None:
     # Commands #
-    def setstyle(params):
+    def btn_setstyle(params):
         context.chat_data['style'] = int(params)
         update.callback_query.message.reply_text("setstyle.success")
 
-    def achlang(params):
+    def btn_achlang(params):
         context.chat_data['ach_lang'] = params
         update.callback_query.message.reply_text("achlang.success")
     # ======== #
     commands = {
-        'setstyle': setstyle,
-        'achlang': achlang
+        'setstyle': btn_setstyle,
+        'achlang': btn_achlang
     }
 
     query = update.callback_query
@@ -137,8 +130,7 @@ def main() -> None:
     # ======== #
 
     # Messages #
-    dispatcher.add_handler(MessageHandler(~Filters.command & Filters.text, create_achievement))
-    dispatcher.add_handler(MessageHandler(~Filters.command & Filters.text & Filters.photo, testphoto))
+    dispatcher.add_handler(MessageHandler(~Filters.command & Filters.text | Filters.photo & Filters.caption, create_achievement))
     # ======== #
 
     # Buttons #

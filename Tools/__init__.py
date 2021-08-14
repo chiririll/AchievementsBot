@@ -22,4 +22,9 @@ def search_image(text, search_all=False):
 
 
 def download_image(url):
-    return BytesIO(requests.get(url).content)
+    if not url:
+        return None
+    req = requests.get(url)
+    if req.content:
+        return BytesIO(req.content)
+    return None
