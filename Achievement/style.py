@@ -1,5 +1,10 @@
 import json
+import logging
+from io import BytesIO
 from zipfile import ZipFile
+
+
+logger = logging.getLogger(__name__)
 
 
 class Style:
@@ -42,10 +47,10 @@ class Style:
             load_zip()
         else:
             load_json()
-
+        # Logging
+        logger.info(f"Initializing style {self.__style['name']}")
         # Closing file
         style.close()
-
         # Checking language
         self.change_lang(lang)
 
@@ -89,9 +94,20 @@ class Style:
 
     # Generator functions #
     def get_attachment(self, name: str):
+        if not name:
+            return
+        name = name.replace('@src/', '')
         return self.__attachments.get(name, None)
 
+    def get_file(self, name: str, default=None):
+        if not name:
+            return default
+        file = self.get_attachment(name)
+        return BytesIO(file) if file else default
+
     def get_string(self, key: str, **strings):
+        if not key:
+            return
         key = key.replace('@text/', '')
         if key[0] == '@':
             return key
@@ -106,11 +122,13 @@ class Style:
 
         # Handling name & description
         for k, v in strings.items():
-            string = string.replace(f"%{k}%", v)
+            string = string.replace(f"%{k}%", v if v else '')
 
         return string
 
     def get_color(self, key: str, default='#000000'):
+        if not key:
+            return default
         key = key.replace('@color/', '')
         return self.__style['colors'].get(key, default)
 
@@ -124,17 +142,19 @@ class Style:
         return self.__style['layers']
 
     # Replacing address strings
-    def handle_value(self, val, **strings):
-        if type(val) is not str:
-            return val
+    def get_resource(self, path, **strings):
+        if type(path) is not str:
+            return path
 
-        parts = val[1:].split('/', 1)
+        parts = path[1:].split('/', 1)
         if parts[0] == 'color':
             return self.get_color(parts[1], strings.get('default', '#000000'))
         elif parts[0] == 'text':
             return self.get_string(parts[1], **strings)
+        elif parts[0] == 'src':
+            return self.get_file(parts[1], strings.get('default'))
         else:
-            return val
+            return path
 
     # =================== #
 

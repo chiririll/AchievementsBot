@@ -1,29 +1,30 @@
 import unittest
+from io import BytesIO
+
 from Achievement import *
 
 
 class AchievementTests(unittest.TestCase):
 
     def test_Default(self):
-        st = Style(open('Styles/Default.achst', 'rb'))
-        ach = Achievement(st, "testing")
-        ach.generate().save('Images/styles/default.png', 'PNG')
+        self.__test_style("Default.achst", "Default")
 
     def test_Magical(self):
-        st = Style(open('Styles/Magical.achst', 'rb'))
-        ach = Achievement(st, "testing")
-        ach.generate().save('Images/styles/magical.png', 'PNG')
-
-    def test_Magical_2(self):
-        st = Style(open('Styles/Magical_2.achst', 'rb'))
-        st.change_lang('RUS')
-        ach = Achievement(st, "testing")
-        ach.generate().save('Images/styles/magical_2.png', 'PNG')
+        self.__test_style("Magical.achst", "Magical")
 
     def test_Layout(self):
-        st = Style(open('Styles/Layout.achs', 'rb'))
-        ach = Achievement(st, "testing")
-        ach.generate().save('Images/styles/layout.png', 'PNG')
+        self.__test_style("Layout.achs")
+
+    def __test_style(self, style: str, name="Testing", icon=None, description=None, lang="ENG"):
+        st = Style(open(f"Styles/{style}", 'rb'), lang)
+        ach = Achievement(st, name, icon, description)
+        f = ach.generate()
+
+        self.assertIs(type(f), BytesIO)
+
+        saver = open(f"Images/styles/{style.split('.', 1)[0].lower()}.png", 'wb')
+        saver.write(f.read())
+        saver.close()
 
 
 if __name__ == '__main__':

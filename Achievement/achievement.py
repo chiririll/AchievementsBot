@@ -1,6 +1,17 @@
+import logging
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from io import BytesIO
 from .style import Style
+
+MAX_NAME = 30
+MAX_DESC = 60
+
+# Enable logging
+logging.basicConfig(
+    format='%(name)s - %(levelname)s: %(message)s', level=logging.INFO
+)
+
+logger = logging.getLogger(__name__)
 
 
 # TODO: Add secret achievements
@@ -10,11 +21,8 @@ class Achievement:
         self.__style = style
 
         # Adding icon
-        if icon:
-            self.__icon = Image.open(icon)
-        else:
-            icon = self.__style.get_attachment('unknown.png')
-            self.__icon = Image.open(BytesIO(icon) if icon else "Images/unknown.jpg")
+        self.__icon = (icon or self.__style.get_file('unknown.png')) or "src/unknown.jpg"
+        self.__icon = Image.open(self.__icon)
 
         self.__strings = {
             'name': name,
@@ -24,8 +32,17 @@ class Achievement:
         self.__image = Image.new("RGBA", self.__style.get_size(), self.__style.get_color('_BG'))
         self.__drawer = ImageDraw.Draw(self.__image)
 
+    @staticmethod
+    def check_values(name: str = '', description: str = '', **kwargs):
+        errs = []
+        if len(name) > MAX_NAME:
+            errs.append("error.long_name")
+        if len(description) > MAX_DESC:
+            errs.append("error.long_description")
+        return errs
+
     # TODO: add multiline text for description
-    # TODO: add filters
+    # TODO: add random resource @rand
     def generate(self):
         handlers = {
             'image': self.__draw_image,
@@ -39,68 +56,79 @@ class Achievement:
                 handlers.get(layer['@type'].lower(), self.__draw_other)(layer)
             except Exception as e:
                 i = self.__style.get_layers().index(layer)
-                print(f"Error handling layer #{i} \"{layer.get('@type')}\" at style \"{self.__style.get_name()}\": {e}")
+                logging.error(f"Error handling layer #{i} ({layer.get('@type')} at \"{self.__style.get_name()}\"): {e}")
                 return "error.style.layer"
 
-        return self.__image
+        # Returning achievement
+        file = BytesIO()
+        self.__image.save(file, 'PNG')
+        file.seek(0)
+        return file
 
     # Drawers #
-    # TODO: Make some params (font, font_size) optional
     # TODO: Draw every letter
     # TODO: Add more types of font
     def __draw_text(self, layer):
         box = layer['@box']
-        font_data = BytesIO(self.__style.get_attachment(layer['@font']))
         # Replacing special markers & getting language string
         text = self.__style.get_string(layer['@text'], **self.__strings)
 
+        # Loading font (if has)
+        font_data = self.__style.get_file(layer.get('@font'), "src/default.ttf")
+
+        # Max size of font
         width = abs(box[2] - box[0])
         height = abs(box[3] - box[1])
 
-        # Putting image into box
-        font_size = layer['@font_size'] + 1
-        font = None
-        size = (width + 1, height + 1)
+        def fit(max_size: tuple):
+            return max_size[0] < width and max_size[1] < height
 
-        while (size[0] > width or size[1] > height) and font_size > 0:
-            font = ImageFont.truetype(font_data, font_size)
-            size = self.__drawer.textsize(
+        def get_font(font_size):
+            if type(font_data) is BytesIO:
+                font_data.seek(0)
+            return ImageFont.truetype(font=font_data, size=font_size)
+
+        def get_size(font_size):
+            return self.__drawer.textsize(
                 text=text,
-                font=font,
+                font=get_font(font_size),
                 spacing=layer.get('spacing', 4),
                 stroke_width=layer.get('stroke_width', 0),
                 direction=layer.get('direction'),
                 features=layer.get('features'),
                 language=layer.get('language')
             )
-            font_size -= 1
 
-        if font_size <= 0:
-            raise ValueError("Font size too small!")
+        # Putting image into box
+        f_size = layer.get('@font_size', 10)
+        while not fit(get_size(f_size)):
+            f_size -= 1
 
         # Anchor point
+        size = get_size(f_size)
         xy = (
             box[0] + (width - size[0]) // 2,
             box[1] + (height - size[1]) // 2
         )
 
-        color = self.__style.handle_value(layer.get('@font_color'), default='#ffffff')
-
         self.__drawer.text(
             xy=xy,
             text=text,
-            font=font,
-            fill=self.__style.get_color(layer.get('@font_color'), '#ffffff'),
+            font=get_font(f_size),
+            fill=self.__style.get_resource(layer.get('@font_color'), default='#ffffff'),
             **self.__clear_layer(layer)
         )
 
     def __draw_image(self, layer):
+        # Opening image or icon
         if layer['@src'] == '@icon':
             image = self.__icon
+            box = layer['@box']
+            image = image.resize((box[2] - box[0], box[3] - box[1]))
         else:
-            image = Image.open(BytesIO(self.__style.get_attachment(layer['@src'])))
+            image = Image.open(self.__style.get_file(layer['@src']))
 
-        mask = Image.open(BytesIO(self.__style.get_attachment(layer['@mask']))) if '@mask' in layer else None
+        mask = Image.open(self.__style.get_file(layer['@mask'])) if '@mask' in layer else None
 
         if layer.get('@foreground'):
             self.__image.alpha_composite(image)
@@ -109,20 +137,20 @@ class Achievement:
 
     def __draw_filter(self, layer):
         filters = {
-            'color3dlut': ImageFilter.Color3DLUT,
-            'boxblur': ImageFilter.BoxBlur,
-            'gaussianblur': ImageFilter.GaussianBlur,
-            'unsharpmask': ImageFilter.UnsharpMask,
-            'rankfilter': ImageFilter.RankFilter,
-            'medianfilter': ImageFilter.MedianFilter,
-            'minfilter': ImageFilter.MinFilter,
-            'maxfilter': ImageFilter.MaxFilter,
-            'modefilter': ImageFilter.ModeFilter
+            'Color3DULT': ImageFilter.Color3DLUT,
+            'BoxBlur': ImageFilter.BoxBlur,
+            'GaussianBlur': ImageFilter.GaussianBlur,
+            'UnsharpMask': ImageFilter.UnsharpMask,
+            'RankFilter': ImageFilter.RankFilter,
+            'MedianFilter': ImageFilter.MedianFilter,
+            'MinFilter': ImageFilter.MinFilter,
+            'MaxFilter': ImageFilter.MaxFilter,
+            'ModeFilter': ImageFilter.ModeFilter
         }
         params = self.__clear_layer(layer)
         for k, v in params.items():
-            params[k] = self.__style.handle_value(v, **self.__strings)
-        f = filters.get(layer['@name'].lower(), lambda **v: None)(**params)
+            params[k] = self.__style.get_resource(v, **self.__strings)
+        f = filters.get(layer['@name'], lambda **z: None)(**params)
         if f:
             self.__image = self.__image.filter(f)
 
@@ -142,8 +170,9 @@ class Achievement:
         }
         params = self.__clear_layer(layer)
         for k, v in params.items():
-            params[k] = self.__style.handle_value(v, **self.__strings)
-        types.get(layer['@type'].lower(), lambda **v: None)(**params)
+            params[k] = self.__style.get_resource(v, **self.__strings)
+        types.get(layer['@type'].lower(), lambda **z: None)(**params)
+
     # ======= #
 
     # Utils #
