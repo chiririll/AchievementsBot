@@ -1,143 +1,186 @@
-import requests
-
-from API.Utils import Response, Keyboard, Button
-from .utils import get_google
-from .style import AchievementStyle
-from lang import lang
+import logging
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from io import BytesIO
-from PIL import Image
+from .style import Style
+
+MAX_NAME = 30
+MAX_DESC = 60
+
+# Enable logging
+logging.basicConfig(
+    format='%(name)s - %(levelname)s: %(message)s', level=logging.INFO
+)
+
+logger = logging.getLogger(__name__)
 
 
 # TODO: Add secret achievements
 class Achievement:
 
-    styles = [
-        AchievementStyle(
-            (900, 300), (300, 300), 'Styles/0/font.otf',
-            message="Новое достижение!", msg_size=45, msg_pos=((310, 10), (890, 100)),
-            name_size=70, name_pos=((310, 10), (890, 250))
-        ),
-        AchievementStyle(
-            (900, 300), (300, 300), 'Styles/1/font.otf',
-            message="Открыто достижение!", msg_size=50, msg_pos=((310, 10), (890, 100)),
-            bg_image=Image.open('Styles/1/bg.png'), fg_image=Image.open('Styles/1/fg.png'),
-            name_size=70, name_pos=((310, 100), (890, 220)),
-            use_copyright=False
-        ),
-        AchievementStyle(
-            (900, 300), (300, 300), 'Styles/2/font.ttf',
-            message="Открыто достижение!", msg_size=50, msg_pos=((310, 10), (890, 100)), msg_color=(144, 66, 178),
-            bg_image=Image.open('Styles/1/bg.png'), fg_image=Image.open('Styles/1/fg.png'),
-            name_size=70, name_pos=((310, 100), (890, 220))
-        )
-    ]
+    def __init__(self, style: Style, name: str, icon=None, description: str = ""):
+        self.__style = style
 
-    def __init__(self, message: str, img_url: str = None):
-        self.lang = lang['ru']
+        # Adding icon
+        self.__icon = (icon or self.__style.get_file('unknown.png')) or "src/unknown.jpg"
+        self.__icon = Image.open(self.__icon)
 
-        # Global values
-        lines = message.split('\n')
+        self.__strings = {
+            'name': name,
+            'description': description
+        }
 
-        self.name = lines[0]
-        self.img_url = img_url
-        self.description = ""
-        self.params = {}
-
-        # Params
-        if len(lines) > 1:
-            params = lines[len(lines) - 1].split(',')
-            for param in params:
-                try:
-                    p_name, p_val = param.split(':', 2)
-                except ValueError:
-                    continue
-
-                p_name = p_name.strip().lower().replace('ё', 'е')
-                p_val = p_val.strip().lower().replace('ё', 'е')
-
-                if p_name in self.lang['params'].keys():
-                    self.params[self.lang['params'][p_name]] = p_val
-                else:
-                    self.params[p_name] = p_val
-
-        # Description
-        if len(lines) > 2:
-            self.description = ' '.join(lines[1:-1])
-
-        self._check_params()
-
-        self.icon = self._get_image(img_url)
-
-        # Lang
-        if 'lang' in self.params.keys() and self.params['lang'] in lang.keys():
-            self.lang = lang[self.params['lang']]
-
-    def generate(self):
-        # Checking length
-        if len(self.name) > self.get_max('name'):
-            return Response(message="long_name")
-        if len(self.description) > self.get_max('desc'):
-            return Response(message="long_desc")
-
-        if type(self.params['style']) is int and 0 < self.params['style'] <= len(self.styles):
-            image = self.styles[self.params['style'] - 1].generate(self.name, self.icon, self.description)
-
-            payload = {
-                'name': self.name,
-                'icon': self.img_url,
-                'desc': self.description,
-                'params': self.params
-            }
-
-            keyboard = Keyboard(inline=True)
-
-            payload['cmd'] = 'ost'
-            keyboard.add_button(Button('other_styles', payload=payload))
-
-            payload['cmd'] = 'oim'
-            keyboard.add_button(Button('other_images', payload=payload))
-
-            return Response(images=[image], keyboard=keyboard)
-        else:
-            return Response(message="unknown_style")
+        self.__image = Image.new("RGBA", self.__style.get_size(), self.__style.get_color('_BG'))
+        self.__drawer = ImageDraw.Draw(self.__image)
 
     @staticmethod
-    def get_max(key):
-        """ Returns max length of description's name """
-        max_len = {
-            'name': 30,
-            'desc': 50
+    def check_values(name: str = '', description: str = '', **kwargs):
+        errs = []
+        if len(name) > MAX_NAME:
+            errs.append("error.long_name")
+        if len(description) > MAX_DESC:
+            errs.append("error.long_description")
+        return errs
+
+    # TODO: add multiline text for description
+    # TODO: add random resource @rand
+    def generate(self):
+        handlers = {
+            'image': self.__draw_image,
+            'text': self.__draw_text,
+            'filter': self.__draw_filter
         }
-        return max_len[key]
 
-    def _check_params(self):
-        defaults = {
-            'lang': 'ru',
-            'style': 3,
-            'bg_color': '#000000',
-            'text_color': '#FFFFFF',
-            'search_request': None,
-            'search_all': False
+        # Drawing layers
+        for layer in self.__style.get_layers():
+            try:
+                handlers.get(layer['@type'].lower(), self.__draw_other)(layer)
+            except Exception as e:
+                i = self.__style.get_layers().index(layer)
+                logging.error(f"Error handling layer #{i} ({layer.get('@type')} at \"{self.__style.get_name()}\"): {e}")
+                return "error.style.layer"
+
+        # Returning achievement
+        file = BytesIO()
+        self.__image.save(file, 'PNG')
+        file.seek(0)
+        return file
+
+    # Drawers #
+    # TODO: Draw every letter
+    # TODO: Add more types of font
+    def __draw_text(self, layer):
+        box = layer['@box']
+        # Replacing special markers & getting language string
+        text = self.__style.get_string(layer['@text'], **self.__strings)
+
+        # Loading font (if has)
+        font_data = self.__style.get_file(layer.get('@font'), "src/default.ttf")
+
+        # Max size of font
+        width = abs(box[2] - box[0])
+        height = abs(box[3] - box[1])
+
+        def fit(max_size: tuple):
+            return max_size[0] < width and max_size[1] < height
+
+        def get_font(font_size):
+            if type(font_data) is BytesIO:
+                font_data.seek(0)
+            return ImageFont.truetype(font=font_data, size=font_size)
+
+        def get_size(font_size):
+            return self.__drawer.textsize(
+                text=text,
+                font=get_font(font_size),
+                spacing=layer.get('spacing', 4),
+                stroke_width=layer.get('stroke_width', 0),
+                direction=layer.get('direction'),
+                features=layer.get('features'),
+                language=layer.get('language')
+            )
+
+        # Putting image into box
+        f_size = layer.get('@font_size', 10)
+        while not fit(get_size(f_size)):
+            f_size -= 1
+
+        # Anchor point
+        size = get_size(f_size)
+        xy = (
+            box[0] + (width - size[0]) // 2,
+            box[1] + (height - size[1]) // 2
+        )
+
+        self.__drawer.text(
+            xy=xy,
+            text=text,
+            font=get_font(f_size),
+            fill=self.__style.get_resource(layer.get('@font_color'), default='#ffffff'),
+            **self.__clear_layer(layer)
+        )
+
+    def __draw_image(self, layer):
+        # Opening image or icon
+        if layer['@src'] == '@icon':
+            image = self.__icon
+            box = layer['@box']
+            image = image.resize((box[2] - box[0], box[3] - box[1]))
+        else:
+            image = Image.open(self.__style.get_file(layer['@src']))
+
+        mask = Image.open(self.__style.get_file(layer['@mask'])) if '@mask' in layer else None
+
+        if layer.get('@foreground'):
+            self.__image.alpha_composite(image)
+        else:
+            self.__image.paste(image, box=layer.get('@box'), mask=mask)
+
+    def __draw_filter(self, layer):
+        filters = {
+            'Color3DULT': ImageFilter.Color3DLUT,
+            'BoxBlur': ImageFilter.BoxBlur,
+            'GaussianBlur': ImageFilter.GaussianBlur,
+            'UnsharpMask': ImageFilter.UnsharpMask,
+            'RankFilter': ImageFilter.RankFilter,
+            'MedianFilter': ImageFilter.MedianFilter,
+            'MinFilter': ImageFilter.MinFilter,
+            'MaxFilter': ImageFilter.MaxFilter,
+            'ModeFilter': ImageFilter.ModeFilter
         }
-        for k, v in defaults.items():
-            if k not in self.params.keys():
-                self.params[k] = v
+        params = self.__clear_layer(layer)
+        for k, v in params.items():
+            params[k] = self.__style.get_resource(v, **self.__strings)
+        f = filters.get(layer['@name'], lambda **z: None)(**params)
+        if f:
+            self.__image = self.__image.filter(f)
 
-    def _get_image(self, img_url: str = None):
-        # Getting from VK or Telegram
-        url = img_url
+    def __draw_other(self, layer):
+        types = {
+            'arc': self.__drawer.arc,
+            'bitmap': self.__drawer.bitmap,
+            'chord': self.__drawer.chord,
+            'ellipse': self.__drawer.ellipse,
+            'line': self.__drawer.line,
+            'pieslice': self.__drawer.pieslice,
+            'point': self.__drawer.point,
+            'polygon': self.__drawer.polygon,
+            'regular_polygon': self.__drawer.regular_polygon,
+            'rectangle': self.__drawer.rectangle,
+            'rounded_rectangle': self.__drawer.rounded_rectangle
+        }
+        params = self.__clear_layer(layer)
+        for k, v in params.items():
+            params[k] = self.__style.get_resource(v, **self.__strings)
+        types.get(layer['@type'].lower(), lambda **z: None)(**params)
 
-        # Finding in google
-        if not url:
-            if self.params['search_request']:
-                url = get_google(self.params['search_request'], self.params['search_all'])
-            else:
-                url = get_google(self.name, self.params['search_all'])
+    # ======= #
 
-        # Unknown
-        if not url:
-            return Image.open('Images/unknown.jpg')
-
-        # Downloading image
-        resp = requests.get(url)
-        return Image.open(BytesIO(resp.content))
+    # Utils #
+    def __clear_layer(self, layer: dict):
+        layer = dict(layer)
+        keys = list(layer.keys())
+        for k in keys:
+            if k[0] == '@':
+                del layer[k]
+        return layer
+    # ===== #
