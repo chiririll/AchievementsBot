@@ -12,16 +12,13 @@ logger = logging.getLogger(__name__)
 def __init_langs() -> dict:
     folder = "Lang/langs"
     files = [f.split('.')[0] for f in listdir(folder) if isfile(join(folder, f))]
-    dicts = [json.load(open(join(folder, d + ".json"))) for d in files]
+    dicts = [json.load(open(join(folder, d + ".json"), 'r', encoding='utf-8')) for d in files]
     return dict(zip(files, dicts))
 
 
 # Loading languages
 LANG_DICT = __init_langs()
-LANG_NAME = {
-    'ENG': ['🇺🇸', "English"],
-    'RUS': ['🇷🇺', "Русский"]
-}
+LANG_NAME = json.load(open("Lang/languages.json", 'r', encoding='utf-8'))
 
 
 # TODO: Replace address strings (e.g. @params.search)

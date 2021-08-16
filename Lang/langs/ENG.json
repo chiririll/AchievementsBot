@@ -4,10 +4,26 @@
       "Hello, I can make achievements! Just type it's name and I send it to you.",
       "Type /help for more info"
     ],
-    "setstyle": {
-      "select": "Select style to change:",
-      "changed": "Style changed to %style%"
-    },
+    "help": [
+      "Need some help? Ok",
+      "",
+      "To get name to achievement, type it on first line. On the second line you can write description for your achievement.",
+      "",
+      "You also can add additional params on second line:",
+      "",
+      "E.g.: param1: value1, param2: value2, ...",
+      "",
+      "List of params: /params",
+      "",
+      "Tou also can send photo which would be used as icon of achievement.",
+      "",
+      "Type /setlang to change bot language."
+    ],
+    "params": [
+      "Ok. Here is list of additional params (use /help for more info):",
+      "",
+      "@params.search - text for searching image in Google (uses achievement name as default)"
+    ],
     "achlang": {
       "select": "Select your language:",
       "changed": "Achievements language changed to %lang%"
@@ -16,26 +32,18 @@
       "select": "Select your language:",
       "changed": "Language changed to %lang%"
     },
-    "help": [
-      "Need some help? Ok",
-      "",
-      "To get name to achievement, type it on first line. On the second line you can write description for your achievement.",
-      "",
-      "You also can add additional params in third or second line (instead of description):",
-      "",
-      "E.g.: param1: value1, param2: value2, ...",
-      "",
-      "List of params: /params"
-    ],
-    "params": [
-      "Ok. Here is list of additional params (use /help for more info):",
-      "@params.search - text for searching image in Google (uses achievement name as default)"
-    ]
+    "setstyle": {
+      "select": "Select style to change:",
+      "changed": "Style changed to %style%"
+    }
   },
   "keyboard": {
     "setstyle": {
-      "random": "Random"
+      "random": "\uD83C\uDFB2 Random"
     }
+  },
+  "achievement": {
+    "require_name": "What is the name of achievement?"
   },
   "error": {
     "achievement": {

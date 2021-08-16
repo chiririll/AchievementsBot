@@ -19,15 +19,15 @@ logger = logging.getLogger(__name__)
 
 # Commands #
 def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(Lang.get('command.start'), context.chat_data.get('lang'))
+    update.message.reply_text(Lang.get('command.start', context.chat_data.get('lang')))
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(Lang.get('command.help'), context.chat_data.get('lang'))
+    update.message.reply_text(Lang.get('command.help', context.chat_data.get('lang')))
 
 
 def params_command(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(Lang.get('command.params'), context.chat_data.get('lang'))
+    update.message.reply_text(Lang.get('command.params', context.chat_data.get('lang')))
 
 
 def setlang(update: Update, context: CallbackContext) -> None:
@@ -65,6 +65,7 @@ def setstyle(update: Update, context: CallbackContext) -> None:
 # ======== #
 
 
+# Messages handlers #
 def create_achievement(update: Update, context: CallbackContext) -> None:
     lang = context.chat_data.get('lang')
 
@@ -81,6 +82,9 @@ def create_achievement(update: Update, context: CallbackContext) -> None:
     if update.message.photo:
         photos = update.message.photo
         image = photos[1 if len(photos) > 1 else 0].get_file().file_path
+    elif context.chat_data.get('image_url'):
+        image = context.chat_data.get('image_url')
+        context.chat_data['image_url'] = None
 
     vals['icon'] = Tools.download_image(image or Tools.search_image(vals['name']))
     vals['style'] = Styles.get(context.chat_data.get('style'))
@@ -101,6 +105,14 @@ def create_achievement(update: Update, context: CallbackContext) -> None:
     # TODO: add buttons (other images and styles)
 
 
+def require_name(update: Update, context: CallbackContext) -> None:
+    photos = update.message.photo
+    context.chat_data['image_url'] = photos[1 if len(photos) > 1 else 0].get_file().file_path
+    update.message.reply_text(Lang.get("achievement.require_name", context.chat_data.get('lang')))
+# ================= #
+
+
+# Keyboard handlers #
 def callback_button(update: Update, context: CallbackContext) -> None:
     lang = context.chat_data.get('lang')
 
@@ -115,7 +127,7 @@ def callback_button(update: Update, context: CallbackContext) -> None:
 
     def btn_setlang(params):
         context.chat_data['lang'] = params
-        update.callback_query.message.reply_text(Lang.get('command.setlang.changed', lang, lang=Lang.get_lang(params, True)))
+        update.callback_query.message.reply_text(Lang.get('command.setlang.changed', params, lang=Lang.get_lang(params, True)))
     # ======== #
 
     commands = {
@@ -128,13 +140,10 @@ def callback_button(update: Update, context: CallbackContext) -> None:
     query.answer()
     data = query.data.split('.', 1)
     commands.get(data[0], lambda p: None)(data[1])
+# ================= #
 
 
 def main() -> None:
-    """Start the bot."""
-    # Creating database connection
-    # db = DBHelper.Database("Config/Database.json", functions=Tools.DB_FUNCS)
-
     # Create the Updater and pass it bot's token.
     updater = Updater(env.get("TELEGRAM_TOKEN"))
 
@@ -148,13 +157,11 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("setlang", setlang))
     dispatcher.add_handler(CommandHandler("achlang", achlang))
     dispatcher.add_handler(CommandHandler("setstyle", setstyle))
-    # dispatcher.add_handler(CommandHandler("mystyles", help_command))
-    # dispatcher.add_handler(CommandHandler("addstyle", help_command))
     # ======== #
 
     # Messages #
     dispatcher.add_handler(MessageHandler(~Filters.command & Filters.text | Filters.photo & Filters.caption, create_achievement))
-    # TODO: add photo handler that require text (name & description)
+    dispatcher.add_handler(MessageHandler(~Filters.command & Filters.photo, require_name))
     # ======== #
 
     # Buttons #
