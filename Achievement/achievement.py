@@ -3,8 +3,6 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from io import BytesIO
 from .style import Style
 
-MAX_NAME = 30
-MAX_DESC = 60
 
 # Enable logging
 logging.basicConfig(
@@ -16,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 # TODO: Add secret achievements
 class Achievement:
+    LIMITS = {
+        'max_name': 30,
+        'max_desc': 60
+    }
 
     def __init__(self, style: Style, name: str, icon=None, description: str = ""):
         self.__style = style
@@ -34,10 +36,10 @@ class Achievement:
 
     @staticmethod
     def check_values(name: str = '', description: str = '', **kwargs):
-        if len(name) > MAX_NAME:
-            yield "error.long_name"
-        if len(description) > MAX_DESC:
-            yield "error.long_description"
+        if len(name) > Achievement.LIMITS['max_name']:
+            yield "error.achievement.long_name"
+        if len(description) > Achievement.LIMITS['max_desc']:
+            yield "error.achievement.long_desc"
 
     @staticmethod
     def parse_message(msg):
