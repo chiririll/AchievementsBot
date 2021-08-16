@@ -1,1 +1,2 @@
-worker: python3 telega.py
+Telegram: python3 telega.py
+Vk: python3 vk.py

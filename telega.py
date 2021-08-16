@@ -11,9 +11,6 @@ from Achievement import Achievement
 
 
 # Logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
-)
 logger = logging.getLogger(__name__)
 
 
@@ -119,7 +116,8 @@ def callback_button(update: Update, context: CallbackContext) -> None:
     # Commands #
     def btn_setstyle(params):
         context.chat_data['style'] = int(params)
-        update.callback_query.message.reply_text(Lang.get('command.setstyle.changed', lang, style=Styles.get(int(params)).get_name()))
+        stylename = Lang.get("keyboard.setstyle.random", lang) if int(params) < 0 else Styles.get(int(params)).get_name(lang)
+        update.callback_query.message.reply_text(Lang.get('command.setstyle.changed', lang, style=stylename))
 
     def btn_achlang(params):
         context.chat_data['ach_lang'] = params
@@ -144,6 +142,8 @@ def callback_button(update: Update, context: CallbackContext) -> None:
 
 
 def main() -> None:
+    logger.info("Starting Telegram bot")
+
     # Create the Updater and pass it bot's token.
     updater = Updater(env.get("TELEGRAM_TOKEN"))
 
