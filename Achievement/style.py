@@ -1,7 +1,7 @@
 import json
 import logging
 from io import BytesIO
-from typing import Optional, Dict, Any, IO, List
+from typing import Optional, Dict, Any, IO, List, Union
 from zipfile import ZipFile
 
 
@@ -10,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 class Style:
 
-    __style: Dict[str, Any]
-    __attachments: Dict[str, Optional[bytes]]
-    __lang: Optional[str]
-
-    def __init__(self, style: Optional[str, BytesIO, IO], lang: str = 'ENG'):
+    def __init__(self, style: Union[str, BytesIO, IO], lang: str = 'ENG'):
         # Opening style file
         if type(style) is str:
             style = open(style, 'rb')
+
+        self.__style: Dict[str, Any] = {}
+        self.__attachments: Dict[str, Optional[bytes]] = {}
+        self.__lang: Optional[str] = None
 
         # For .achst files
         def load_zip() -> None:
@@ -98,11 +98,11 @@ class Style:
     # Generator functions #
     def get_attachment(self, name: str) -> Optional[bytes]:
         if not name:
-            return
+            return None
         name = name.replace('@src/', '')
         return self.__attachments.get(name, None)
 
-    def get_file(self, name: str, default: Any = None) -> Optional[BytesIO, Any]:
+    def get_file(self, name: str, default: str = None) -> Union[BytesIO, str]:
         if not name:
             return default
         file = self.get_attachment(name)
@@ -110,7 +110,7 @@ class Style:
 
     def get_string(self, key: str, **strings) -> Optional[str]:
         if not key:
-            return
+            return None
         key = key.replace('@text/', '')
         if key[0] == '@':
             return key

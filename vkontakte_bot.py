@@ -28,7 +28,7 @@ def get_chat_data(key: str, obj: dict, default=None):
 
 def edit_chat_data(key: str, val, obj: dict, default=None) -> None:
     # TODO: save to db
-    CHAT_DATA[obj['peer_id']][key] = val
+    CHAT_DATA.update((obj['peer_id'][key], val))
 # ======= #
 
 
@@ -56,7 +56,7 @@ def handle_button(obj: dict) -> None:
 
 def handle_command(obj: dict) -> None:
     def unknown_command():
-        reply_text("unknown command", obj)
+        reply_text(Lang.get('command.null', get_chat_data('lang', obj)), obj)
 
     commands = {}
 
@@ -64,13 +64,21 @@ def handle_command(obj: dict) -> None:
     commands.get(command, unknown_command)()
 
 
-def create_achievement(obj: dict) -> None:
-    def get_photo():
-        for a in obj['attachments']:
-            if a['type'] == 'photo':
-                sizes = a['photo']['sizes']
-                return sizes[1 if len(sizes) > 1 else 0]['url']
+def handle_attachment(obj: dict):
+    # edit_chat_data('image_url', get_photo(obj), obj)
+    # reply_text(Lang.get("achievement.require_name", get_chat_data('lang', obj)), obj)
+    reply_text("No", obj)
 
+
+def get_photo(obj):
+    for a in obj['attachments']:
+        if a['type'] == 'photo':
+            sizes = a['photo']['sizes']
+            return sizes[1 if len(sizes) > 1 else 0]['url']
+    return None
+
+
+def create_achievement(obj: dict) -> None:
     lang = get_chat_data('lang', obj)
 
     # Checking name & description
@@ -82,7 +90,7 @@ def create_achievement(obj: dict) -> None:
         return
 
     # Icon & style
-    image = get_photo()
+    image = get_photo(obj)
     if not image and get_chat_data('image_url', obj):
         image = get_chat_data('image_url', obj)
         edit_chat_data('image_url', None, obj)
@@ -92,9 +100,8 @@ def create_achievement(obj: dict) -> None:
 
     # Setting language
     ach_lang = get_chat_data('ach_lang', obj, 'ENG')
-    resp = vals['style'].change_lang(ach_lang)
-    if resp:
-        reply_text(Lang.get('error.achievement.no_lang', lang, msg_lang=ach_lang), obj)
+    if vals['style'].change_lang(ach_lang) != 'ok':
+        reply_text(Lang.get('error.achievement.no_lang', lang, lang=ach_lang, style=vals['style'].get_name(lang)), obj)
 
     ach = Achievement(**vals)
     gen = ach.generate()
@@ -125,10 +132,13 @@ def main() -> None:
 
             if 'payload' in obj.keys():
                 handle_button(obj)
-            elif obj['text'][0] == '/':
-                handle_command(obj)
-            else:
-                create_achievement(obj)
+            elif len(obj.get('text', '')) > 0:
+                if obj['text'][0] == '/':
+                    handle_command(obj)
+                else:
+                    create_achievement(obj)
+            elif len(obj['attachments']) > 0:
+                handle_attachment(obj)
 
 
 if __name__ == "__main__":

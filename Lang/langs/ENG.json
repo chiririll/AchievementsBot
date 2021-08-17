@@ -15,15 +15,16 @@
       "",
       "List of params: /params",
       "",
-      "Tou also can send photo which would be used as icon of achievement.",
+      "You also can send photo which would be used as icon of achievement.",
       "",
       "Type /setlang to change bot language."
     ],
-    "params": [
-      "Ok. Here is list of additional params (use /help for more info):",
-      "",
-      "@params.search - text for searching image in Google (uses achievement name as default)"
-    ],
+    "params": {
+      "message": "Ok. Here is list of additional params (use /help for more info):",
+      "list": {
+        "search": "text for searching image in Google (uses achievement name as default)"
+      }
+    },
     "achlang": {
       "select": "Select your language:",
       "changed": "Achievements language changed to %lang%"
@@ -35,7 +36,8 @@
     "setstyle": {
       "select": "Select style to change:",
       "changed": "Style changed to %style%"
-    }
+    },
+    "null": "Command unavailable :("
   },
   "keyboard": {
     "setstyle": {

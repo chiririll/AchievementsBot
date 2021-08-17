@@ -24,7 +24,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
 
 def params_command(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(Lang.get('command.params', context.chat_data.get('lang')))
+    update.message.reply_text(Lang.get('command.null', context.chat_data.get('lang')))
 
 
 def setlang(update: Update, context: CallbackContext) -> None:
@@ -89,7 +89,7 @@ def create_achievement(update: Update, context: CallbackContext) -> None:
     # Setting language
     ach_lang = context.chat_data.get('ach_lang', 'ENG')
     if vals['style'].change_lang(ach_lang) != 'ok':
-        update.message.reply_text(Lang.get('error.achievement.no_lang', lang, msg_lang=ach_lang))
+        update.message.reply_text(Lang.get('error.achievement.no_lang', lang, lang=ach_lang, style=vals['style'].get_name(lang)))
 
     ach = Achievement(**vals)
     gen = ach.generate()
@@ -118,13 +118,14 @@ def callback_button(update: Update, context: CallbackContext) -> None:
         stylename = Lang.get("keyboard.setstyle.random", lang) if int(params) < 0 else Styles.get(int(params)).get_name(lang)
         update.callback_query.message.reply_text(Lang.get('command.setstyle.changed', lang, style=stylename))
 
-    def btn_achlang(params):
+    def btn_achlang(params, same_lang=False):
         context.chat_data['ach_lang'] = params
-        update.callback_query.message.reply_text(Lang.get('command.achlang.changed', lang, lang=Lang.get_lang(params, True)))
+        update.callback_query.message.reply_text(Lang.get('command.achlang.changed', params if same_lang else lang, lang=Lang.get_lang(params, True)))
 
     def btn_setlang(params):
         context.chat_data['lang'] = params
         update.callback_query.message.reply_text(Lang.get('command.setlang.changed', params, lang=Lang.get_lang(params, True)))
+        btn_achlang(params, True)
     # ======== #
 
     commands = {
