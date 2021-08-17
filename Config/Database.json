@@ -1,26 +1,16 @@
 {
   "tables": {
     "t_chat_data": {
-      "id": ["UNSIGNED", "INT", "UNIQUE", "NOT NULL", "PRIMARY KEY"],
+      "id": ["BIGINT", "UNSIGNED", "UNIQUE", "NOT NULL", "PRIMARY KEY"],
       "val": ["TEXT"]
     },
     "t_user_data": {
-      "id": ["UNSIGNED", "INT", "UNIQUE", "NOT NULL", "PRIMARY KEY"],
+      "id": ["BIGINT", "UNSIGNED", "UNIQUE", "NOT NULL", "PRIMARY KEY"],
       "val": ["TEXT"]
     },
     "t_data": {
-      "type": ["UNSIGNED", "INT(1)", "UNIQUE", "NOT NULL", "PRIMARY KEY"],
+      "type": ["TINYINT", "UNSIGNED", "UNIQUE", "NOT NULL", "PRIMARY KEY"],
       "val": ["TEXT"]
-    },
-
-    "styles": {
-      "id": ["INT", "NOT NULL", "UNIQUE", "PRIMARY KEY"],
-      "name": ["VARCHAR(20)", "NOT NULL"],
-      "platform": ["INT(1)", "NOT NULL"],
-      "user_id": ["INT", "NOT NULL", "UNIQUE"],
-      "is_public": ["BOOL", "NOT NULL", "DEFAULT true"],
-      "file_id": ["TEXT", "NOT NULL"],
-      "FOREIGN KEY": ["user_id", "users(id)"]
     }
   }
 }

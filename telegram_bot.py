@@ -3,6 +3,7 @@ from os import environ as env
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
 
+import DBHelper
 import Lang
 import Tools
 import Styles
@@ -16,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 # Commands #
 def start(update: Update, context: CallbackContext) -> None:
+    if context.user_data.get('new', True):
+        logger.info(f"New user! {update.effective_user.name}")
+        context.user_data['new'] = False
     update.message.reply_text(Lang.get('command.start', context.chat_data.get('lang')))
 
 
@@ -97,6 +101,9 @@ def create_achievement(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(Lang.get(gen, lang))
     else:
         update.message.reply_photo(gen)
+        # Incrementing stats
+        context.bot_data['ach_generated'] = context.bot_data.get('ach_generated', 0) + 1
+        context.chat_data['ach_generated'] = context.chat_data.get('ach_generated', 0) + 1
 
     # TODO: add buttons (other images and styles)
 
@@ -144,8 +151,13 @@ def callback_button(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     logger.info("Starting Telegram bot")
 
+    # Creating database connection and persistence
+    db = DBHelper.Database("Config/database.json")
+    persistence = Tools.DBHelperPersistence(db)
+    logger.info(env.get("TELEGRAM_TOKEN"))
+
     # Create the Updater and pass it bot's token.
-    updater = Updater(env.get("TELEGRAM_TOKEN"))
+    updater = Updater(env.get("TELEGRAM_TOKEN"), persistence=persistence, use_context=True)
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
