@@ -12,8 +12,10 @@
 ![Achievement layout](Images/styles/layout.png)
 
 ## Links
-### VK: [Here](https://vk.com/achievebot)
-### Telegram: [Here](https://t.me/dostizbot)
+### VK: [Here](https://vk.com/achgenbot)
+### Telegram: [Here](https://t.me/achgenbot)
 
-## Achievement style format
+
+# Achievement style format
+
 ### TODO: write something

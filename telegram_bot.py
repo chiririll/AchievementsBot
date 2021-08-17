@@ -1,7 +1,6 @@
 import logging
-from io import BytesIO
 from os import environ as env
-from telegram import Update, ForceReply, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
 
 import Lang
@@ -11,6 +10,7 @@ from Achievement import Achievement
 
 
 # Logging
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -88,8 +88,7 @@ def create_achievement(update: Update, context: CallbackContext) -> None:
 
     # Setting language
     ach_lang = context.chat_data.get('ach_lang', 'ENG')
-    resp = vals['style'].change_lang(ach_lang)
-    if resp:
+    if vals['style'].change_lang(ach_lang) != 'ok':
         update.message.reply_text(Lang.get('error.achievement.no_lang', lang, msg_lang=ach_lang))
 
     ach = Achievement(**vals)

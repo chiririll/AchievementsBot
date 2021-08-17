@@ -1,3 +1,4 @@
+import collections
 from typing import DefaultDict, Tuple, Optional
 
 from telegram.ext import BasePersistence
@@ -17,7 +18,7 @@ class DBHelperPersistence(BasePersistence):
         pass
 
     def get_chat_data(self) -> DefaultDict[int, CD]:
-        pass
+        return collections.defaultdict()
     # ========= #
 
     # Bot data #
@@ -25,7 +26,7 @@ class DBHelperPersistence(BasePersistence):
         pass
 
     def get_bot_data(self) -> BD:
-        pass
+        return {}
     # ======== #
 
     # Callback data #
@@ -41,7 +42,7 @@ class DBHelperPersistence(BasePersistence):
         pass
 
     def get_user_data(self) -> DefaultDict[int, UD]:
-        pass
+        return collections.defaultdict()
 
     # ========= #
 

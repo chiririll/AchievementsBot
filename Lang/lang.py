@@ -1,15 +1,18 @@
 import json
 import logging
+
 from os import listdir
 from os.path import isfile, join
+
+from typing import Dict
 
 
 # Logging
 logger = logging.getLogger(__name__)
 
 
-# Loading languages dicts into LANGS
-def __init_langs() -> dict:
+# Loading languages dicts into LANG_DICT
+def __init_langs() -> Dict[str, dict]:
     folder = "Lang/langs"
     files = [f.split('.')[0] for f in listdir(folder) if isfile(join(folder, f))]
     dicts = [json.load(open(join(folder, d + ".json"), 'r', encoding='utf-8')) for d in files]

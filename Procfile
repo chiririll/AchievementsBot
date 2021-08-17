@@ -1,2 +1,2 @@
-Telegram: python3 telega.py
-Vk: python3 vk.py
+Telegram: python3 telegram_bot.py
+Vk: python3 vkontakte_bot.py

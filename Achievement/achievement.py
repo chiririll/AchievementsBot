@@ -1,4 +1,6 @@
 import logging
+from typing import Dict, Any
+
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from io import BytesIO
 from .style import Style
@@ -78,7 +80,7 @@ class Achievement:
     # Drawers #
     # TODO: Draw every letter
     # TODO: Add more types of font
-    def __draw_text(self, layer):
+    def __draw_text(self, layer: Dict[str, Any]):
         box = layer['@box']
         # Replacing special markers & getting language string
         text = self.__style.get_string(layer['@text'], **self.__strings)
@@ -129,7 +131,7 @@ class Achievement:
             **self.__clear_layer(layer)
         )
 
-    def __draw_image(self, layer):
+    def __draw_image(self, layer: Dict[str, Any]):
         # Opening image or icon
         if layer['@src'] == '@icon':
             image = self.__icon
@@ -145,7 +147,7 @@ class Achievement:
         else:
             self.__image.paste(image, box=layer.get('@box'), mask=mask)
 
-    def __draw_filter(self, layer):
+    def __draw_filter(self, layer: Dict[str, Any]):
         filters = {
             'Color3DULT': ImageFilter.Color3DLUT,
             'BoxBlur': ImageFilter.BoxBlur,
@@ -164,7 +166,7 @@ class Achievement:
         if f:
             self.__image = self.__image.filter(f)
 
-    def __draw_other(self, layer):
+    def __draw_other(self, layer: Dict[str, Any]):
         types = {
             'arc': self.__drawer.arc,
             'bitmap': self.__drawer.bitmap,
@@ -186,7 +188,8 @@ class Achievement:
     # ======= #
 
     # Utils #
-    def __clear_layer(self, layer: dict):
+    @staticmethod
+    def __clear_layer(layer: Dict[str, Any]):
         layer = dict(layer)
         keys = list(layer.keys())
         for k in keys:

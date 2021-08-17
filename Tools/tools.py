@@ -1,10 +1,12 @@
 from io import BytesIO
 from random import choice
+from typing import Optional
+
 import requests
 from bs4 import BeautifulSoup
 
 
-def search_image(text: str, search_all=False) -> str:
+def search_image(text: str, search_all: bool = False) -> Optional[str]:
     url = f"https://www.google.ru/search?tbm=isch{'&tbs=iar:s' if search_all else ''}&as_q={text}"
 
     req = requests.get(url)
@@ -19,7 +21,7 @@ def search_image(text: str, search_all=False) -> str:
     return None
 
 
-def download_image(url: str) -> BytesIO:
+def download_image(url: str) -> Optional[BytesIO]:
     if not url:
         return None
     req = requests.get(url)
