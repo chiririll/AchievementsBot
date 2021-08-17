@@ -1,0 +1,66 @@
+{
+	"v": "1.0 dev",
+	"name": "Layout",
+	"author": "chiririll",
+	"created": "13.08.2021",
+	"size": [900, 300],
+	"localization": {},
+	"colors": {
+		"_BG": "#000000",
+		"icon": "#00ff4b",
+		"msg": "#ff00e9",
+		"name": "#2000ff",
+		"desc": "#d70000"
+	},
+	"layers": [
+		{
+			"@type": "Rectangle",
+			"xy": [0, 0, 300, 300],
+			"fill": "@color/icon"
+		},
+		{
+			"@type": "Rectangle",
+			"xy": [310, 10, 890, 80],
+			"fill": "@color/msg"
+		},
+		{
+			"@type": "Rectangle",
+			"xy": [310, 80, 890, 160],
+			"fill": "@color/name"
+		},
+		{
+			"@type": "Rectangle",
+			"xy": [310, 160, 890, 290],
+			"fill": "@color/desc"
+		},
+
+		{
+			"@type": "Text",
+			"@text": "<Icon>",
+			"@box": [0, 0, 300, 300],
+			"@font_color": "#ffffff",
+			"@font_size": 50
+		},
+		{
+			"@type": "Text",
+			"@text": "<Message>",
+			"@box": [310, 10, 890, 80],
+			"@font_color": "#ffffff",
+			"@font_size": 50
+		},
+		{
+			"@type": "Text",
+			"@text": "<Name>",
+			"@box": [310, 80, 890, 160],
+			"@font_color": "#ffffff",
+			"@font_size": 50
+		},
+		{
+			"@type": "Text",
+			"@text": "<Description>",
+			"@box": [310, 160, 890, 290],
+			"@font_color": "#ffffff",
+			"@font_size": 50
+		}
+	]
+}
