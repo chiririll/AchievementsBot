@@ -154,7 +154,6 @@ def main() -> None:
     # Creating database connection and persistence
     db = DBHelper.Database("Config/Database.json")
     persistence = Tools.DBHelperPersistence(db)
-    logger.info(env.get("TELEGRAM_TOKEN"))
 
     # Create the Updater and pass it bot's token.
     updater = Updater(env.get("TELEGRAM_TOKEN"), persistence=persistence, use_context=True)

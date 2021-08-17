@@ -99,7 +99,7 @@ def create_achievement(obj: dict) -> None:
     vals['style'] = Styles.get(get_chat_data('style', obj))
 
     # Setting language
-    ach_lang = get_chat_data('ach_lang', obj, 'ENG')
+    ach_lang = get_chat_data('ach_lang', obj, 'RUS')
     if vals['style'].change_lang(ach_lang) != 'ok':
         reply_text(Lang.get('error.achievement.no_lang', lang, lang=ach_lang, style=vals['style'].get_name(lang)), obj)
 
