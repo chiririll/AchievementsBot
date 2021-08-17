@@ -152,7 +152,7 @@ def main() -> None:
     logger.info("Starting Telegram bot")
 
     # Creating database connection and persistence
-    db = DBHelper.Database("Config/database.json")
+    db = DBHelper.Database("Config/Database.json")
     persistence = Tools.DBHelperPersistence(db)
     logger.info(env.get("TELEGRAM_TOKEN"))
 
