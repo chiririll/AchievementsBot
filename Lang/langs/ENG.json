@@ -37,6 +37,25 @@
       "select": "Select style to change:",
       "changed": "Style changed to %style%"
     },
+    "stats": {
+      "achievement": [
+        "[Achievements stats]",
+        "-  Total created: %ach_global%",
+        "-  In this chat: %ach_chat%",
+        "",
+        "[Bot stats]",
+        "-  Total users: %users_count%",
+        "-  Total user styles: %user_styles%",
+        "",
+        "System status: /sysstatus"
+      ],
+      "sys": [
+        "[System status]",
+        "-  Uptime: %ut_d% days %ut_h% hours %ut_m% minutes",
+        "-  CPU usage: %cpu_p%%",
+        "-  RAM usage: %ram_mb% MB (%ram_p%%)"
+      ]
+    },
     "null": "Command unavailable :("
   },
   "keyboard": {

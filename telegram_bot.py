@@ -1,4 +1,6 @@
 import logging
+import psutil
+import time
 from os import environ as env
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
@@ -15,9 +17,15 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# Useful variables #
+START_TIME = int(time.time())
+# ================ #
+
+
 # Commands #
 def start(update: Update, context: CallbackContext) -> None:
     if context.user_data.get('new', True):
+        context.bot_data['users_c'] = context.bot_data.get('users_c', 0) + 1
         logger.info(f"New user! {update.effective_user.name}")
         context.user_data['new'] = False
     update.message.reply_text(Lang.get('command.start', context.chat_data.get('lang')))
@@ -62,6 +70,35 @@ def setstyle(update: Update, context: CallbackContext) -> None:
 
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(Lang.get('command.setstyle.select', lang), reply_markup=reply_markup)
+
+
+def stats(update: Update, context: CallbackContext) -> None:
+    keys = {
+        'ach_global': context.bot_data.get('ach_generated', 0),
+        'ach_chat': context.chat_data.get('ach_generated', 0),
+        'users_count': context.bot_data.get('users_c', 0),
+        'user_styles': '0 (coming soon)'
+    }
+    update.message.reply_text(Lang.get('command.stats.achievement', context.chat_data.get('lang'), **keys))
+
+
+def sys_stats(update: Update, context: CallbackContext) -> None:
+    def get_uptime() -> dict:
+        delta = int(time.time()) - START_TIME
+        uptime = {
+            'ut_d': str(delta // 86400),
+            'ut_h': str(delta // 3600),
+            'ut_m': str(delta // 60)
+        }
+        return uptime
+
+    keys = {
+        **get_uptime(),     # ut_d, ut_h, ut_m
+        'cpu_p': str(psutil.cpu_percent()),
+        'ram_p': str(psutil.virtual_memory().percent),
+        'ram_mb': str(psutil.virtual_memory().used // (1024 ** 2))
+    }
+    update.message.reply_text(Lang.get('command.stats.sys', context.chat_data.get('lang'), **keys))
 
 # ======== #
 
@@ -168,6 +205,8 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("setlang", setlang))
     dispatcher.add_handler(CommandHandler("achlang", achlang))
     dispatcher.add_handler(CommandHandler("setstyle", setstyle))
+    dispatcher.add_handler(CommandHandler("stats", stats))
+    dispatcher.add_handler(CommandHandler("sysstatus", sys_stats))
     # ======== #
 
     # Messages #
