@@ -1,7 +1,7 @@
 import logging
 import psutil
 import time
-from os import environ as env
+from os import environ as env, getpid
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
 
@@ -85,18 +85,17 @@ def stats(update: Update, context: CallbackContext) -> None:
 def sys_stats(update: Update, context: CallbackContext) -> None:
     def get_uptime() -> dict:
         delta = int(time.time()) - START_TIME
-        uptime = {
+        return {
             'ut_d': str(delta // 86400),
-            'ut_h': str(delta // 3600),
-            'ut_m': str(delta // 60)
+            'ut_h': str(delta // 3600 % 60),
+            'ut_m': str(delta // 60 % 60)
         }
-        return uptime
 
+    mem = psutil.Process(getpid()).memory_info()
     keys = {
         **get_uptime(),     # ut_d, ut_h, ut_m
-        'cpu_p': str(psutil.cpu_percent()),
-        'ram_p': str(psutil.virtual_memory().percent),
-        'ram_mb': str(psutil.virtual_memory().used // (1024 ** 2))
+        'ram_p': "{0:.2f}".format(mem.vms / mem.rss * 100),
+        'ram_mb': str(mem.vms // (1024 ** 2))
     }
     update.message.reply_text(Lang.get('command.stats.sys', context.chat_data.get('lang'), **keys))
 

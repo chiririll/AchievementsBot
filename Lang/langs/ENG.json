@@ -52,7 +52,6 @@
       "sys": [
         "[System status]",
         "-  Uptime: %ut_d% days %ut_h% hours %ut_m% minutes",
-        "-  CPU usage: %cpu_p%%",
         "-  RAM usage: %ram_mb% MB (%ram_p%%)"
       ]
     },
