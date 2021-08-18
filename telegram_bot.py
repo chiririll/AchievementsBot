@@ -94,8 +94,8 @@ def sys_stats(update: Update, context: CallbackContext) -> None:
     mem = psutil.Process(getpid()).memory_info()
     keys = {
         **get_uptime(),     # ut_d, ut_h, ut_m
-        'ram_p': "{0:.2f}".format(mem.vms / mem.rss * 100),
-        'ram_mb': str(mem.vms // (1024 ** 2))
+        'ram_p': "{0:.2f}".format(mem.rss / mem.vms * 100),
+        'ram_mb': str(mem.rss // (1024 ** 2))
     }
     update.message.reply_text(Lang.get('command.stats.sys', context.chat_data.get('lang'), **keys))
 
