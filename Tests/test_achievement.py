@@ -7,10 +7,10 @@ from Achievement import *
 class AchievementTests(unittest.TestCase):
 
     def test_Default(self):
-        self.__test_style("Default.achst", "Default")
+        self.__test_style("Default.achst", "Default", description="Test default achievement style")
 
     def test_Magical(self):
-        self.__test_style("Magical.achst", "Magical")
+        self.__test_style("Magical.achst", "Magical", description="Test magical achievement style")
 
     def test_Layout(self):
         self.__test_style("Layout.achs")

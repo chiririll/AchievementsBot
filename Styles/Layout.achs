@@ -20,17 +20,17 @@
 		},
 		{
 			"@type": "Rectangle",
-			"xy": [310, 10, 890, 80],
+			"xy": [310, 10, 890, 100],
 			"fill": "@color/msg"
 		},
 		{
 			"@type": "Rectangle",
-			"xy": [310, 80, 890, 160],
+			"xy": [310, 100, 890, 200],
 			"fill": "@color/name"
 		},
 		{
 			"@type": "Rectangle",
-			"xy": [310, 160, 890, 290],
+			"xy": [310, 200, 890, 290],
 			"fill": "@color/desc"
 		},
 
@@ -44,21 +44,21 @@
 		{
 			"@type": "Text",
 			"@text": "<Message>",
-			"@box": [310, 10, 890, 80],
+			"@box": [310, 10, 890, 100],
 			"@font_color": "#ffffff",
 			"@font_size": 50
 		},
 		{
 			"@type": "Text",
 			"@text": "<Name>",
-			"@box": [310, 80, 890, 160],
+			"@box": [310, 100, 890, 200],
 			"@font_color": "#ffffff",
 			"@font_size": 50
 		},
 		{
 			"@type": "Text",
 			"@text": "<Description>",
-			"@box": [310, 160, 890, 290],
+			"@box": [310, 200, 890, 290],
 			"@font_color": "#ffffff",
 			"@font_size": 50
 		}

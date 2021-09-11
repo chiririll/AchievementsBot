@@ -59,6 +59,7 @@ class Achievement:
         handlers = {
             'image': self.__draw_image,
             'text': self.__draw_text,
+            'multitext': self.__draw_text,
             'filter': self.__draw_filter
         }
 
@@ -197,3 +198,4 @@ class Achievement:
                 del layer[k]
         return layer
     # ===== #
+
