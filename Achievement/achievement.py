@@ -29,8 +29,8 @@ class Achievement:
         self.__icon = Image.open(self.__icon)
 
         self.__strings = {
-            'name': name,
-            'description': description
+            'name': name.strip(),
+            'description': description.strip()
         }
 
         self.__image = Image.new("RGBA", self.__style.get_size(), self.__style.get_color('_BG'))
