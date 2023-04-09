@@ -1,4 +1,7 @@
 version: "1.0"
 services:
   achgenbot:
+    image: achgenbot
     build: .
+    env_file:
+      - .env
