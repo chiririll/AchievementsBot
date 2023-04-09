@@ -1,5 +1,5 @@
 import random
-from Bot.Achievement import Style
+from Achievement import Style
 
 
 styles = [
