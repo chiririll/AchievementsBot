@@ -1,7 +1,7 @@
 import unittest
 from io import BytesIO
 
-from Achievement import *
+from Bot.Achievement import *
 
 
 class AchievementTests(unittest.TestCase):
@@ -22,7 +22,7 @@ class AchievementTests(unittest.TestCase):
 
         self.assertIs(type(f), BytesIO)
 
-        saver = open(f"Images/styles/{ach_style.split('.', 1)[0].lower()}.png", 'wb')
+        saver = open(f"../Images/styles/{ach_style.split('.', 1)[0].lower()}.png", 'wb')
         saver.write(f.read())
         saver.close()
 

@@ -1,5 +1,5 @@
 import unittest
-import Tools
+from Bot import Tools
 
 
 class SearchTests(unittest.TestCase):

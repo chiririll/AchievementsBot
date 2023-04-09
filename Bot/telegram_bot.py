@@ -1,6 +1,6 @@
 import logging
 import time
-from os import environ as env, getpid
+from os import environ as env, path
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, \
     PicklePersistence
@@ -125,7 +125,8 @@ def create_achievement(update: Update, context: CallbackContext) -> None:
     # Setting language
     ach_lang = context.chat_data.get('ach_lang', 'ENG')
     if vals['style'].change_lang(ach_lang) != 'ok':
-        update.message.reply_text(Lang.get('error.achievement.no_lang', lang, lang=ach_lang, style=vals['style'].get_name(lang)))
+        update.message.reply_text(
+            Lang.get('error.achievement.no_lang', lang, lang=ach_lang, style=vals['style'].get_name(lang)))
 
     ach = Achievement(**vals)
     gen = ach.generate()
@@ -159,11 +160,13 @@ def callback_button(update: Update, context: CallbackContext) -> None:
 
     def btn_achlang(params, same_lang=False):
         context.chat_data['ach_lang'] = params
-        update.callback_query.message.reply_text(Lang.get('command.achlang.changed', params if same_lang else lang, lang=Lang.get_lang(params, True)))
+        update.callback_query.message.reply_text(
+            Lang.get('command.achlang.changed', params if same_lang else lang, lang=Lang.get_lang(params, True)))
 
     def btn_setlang(params):
         context.chat_data['lang'] = params
-        update.callback_query.message.reply_text(Lang.get('command.setlang.changed', params, lang=Lang.get_lang(params, True)))
+        update.callback_query.message.reply_text(
+            Lang.get('command.setlang.changed', params, lang=Lang.get_lang(params, True)))
         btn_achlang(params, True)
     # ======== #
 
@@ -184,7 +187,7 @@ def main() -> None:
     logger.info("Starting Telegram bot")
 
     # Creating database connection and persistence
-    persistence = PicklePersistence("achgenbot.dat")
+    persistence = PicklePersistence(path.join(env.get('STATE_PATH', '.'), "achgenbot.dat"))
 
     # Create the Updater and pass it bot's token.
     updater = Updater(env.get("TELEGRAM_TOKEN"), persistence=persistence, use_context=True)
