@@ -21,16 +21,16 @@ class Achievement:
         'max_desc': 60
     }
 
-    def __init__(self, style: Style, name: str, icon=None, description: str = ""):
+    def __init__(self, style: Style, name: str, icon=None, description: str = None):
         self.__style = style
 
         # Adding icon
-        self.__icon = (icon or self.__style.get_file('unknown.png')) or "src/unknown.jpg"
+        self.__icon = (icon or self.__style.get_file('unknown.png')) or "res/unknown.jpg"
         self.__icon = Image.open(self.__icon)
 
         self.__strings = {
             'name': name.strip(),
-            'description': description.strip()
+            'description': description.strip() if type(description) is str else ""
         }
 
         self.__image = Image.new("RGBA", self.__style.get_size(), self.__style.get_color('_BG'))
@@ -87,7 +87,7 @@ class Achievement:
         text = self.__style.get_string(layer['@text'], **self.__strings)
 
         # Loading font (if has)
-        font_data = self.__style.get_file(layer.get('@font'), "src/default.ttf")
+        font_data = self.__style.get_file(layer.get('@font'), "res/default.ttf")
 
         # Max size of font
         width = abs(box[2] - box[0])

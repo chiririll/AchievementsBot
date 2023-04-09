@@ -51,8 +51,7 @@
       ],
       "sys": [
         "[System status]",
-        "-  Uptime: %ut_d% days %ut_h% hours %ut_m% minutes",
-        "-  RAM usage: %ram_mb% MB (%ram_p%%)"
+        "-  Uptime: %ut_d% days %ut_h% hours %ut_m% minutes"
       ]
     },
     "null": "Command unavailable :("

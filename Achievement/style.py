@@ -135,7 +135,7 @@ class Style:
         key = key.replace('@color/', '')
         return self.__style['colors'].get(key, default)
 
-    def get_size(self) -> List[int]:
+    def get_size(self) -> tuple[int, int]:
         return self.__style['size']
 
     def get_layer(self, index) -> Dict[str, Any]:

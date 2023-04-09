@@ -1,11 +1,10 @@
 import logging
-import psutil
 import time
 from os import environ as env, getpid
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, \
+    PicklePersistence
 
-import DBHelper
 import Lang
 import Tools
 import Styles
@@ -91,11 +90,8 @@ def sys_stats(update: Update, context: CallbackContext) -> None:
             'ut_m': str(delta // 60 % 60)
         }
 
-    mem = psutil.Process(getpid()).memory_info()
     keys = {
-        **get_uptime(),     # ut_d, ut_h, ut_m
-        'ram_p': "{0:.2f}".format(mem.rss / mem.vms * 100),
-        'ram_mb': str(mem.rss // (1024 ** 2))
+        **get_uptime()     # ut_d, ut_h, ut_m
     }
     update.message.reply_text(Lang.get('command.stats.sys', context.chat_data.get('lang'), **keys))
 
@@ -188,8 +184,7 @@ def main() -> None:
     logger.info("Starting Telegram bot")
 
     # Creating database connection and persistence
-    db = DBHelper.Database("Config/Database.json")
-    persistence = Tools.DBHelperPersistence(db)
+    persistence = PicklePersistence("achgenbot.dat")
 
     # Create the Updater and pass it bot's token.
     updater = Updater(env.get("TELEGRAM_TOKEN"), persistence=persistence, use_context=True)
